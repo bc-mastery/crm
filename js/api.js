@@ -10,9 +10,10 @@
 async function crmApiGet(params = {}) {
 
   const url =
-    new URL(
-      CRM_CONFIG.API_URL
-    );
+new URL(
+"/api",
+window.location.origin
+);
 
   Object.entries(params)
     .forEach(
