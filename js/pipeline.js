@@ -206,6 +206,101 @@ function bindPipelineEvents() {
         await loadPipelineLeads();
       }
     );
+
+
+  /* =====================================================
+   * GLOBAL PIPELINE TOUCHPAD SCROLLING
+   * ===================================================== */
+
+  const pipelineMain =
+    document.querySelector(
+      ".pipeline-main"
+    );
+
+
+  const board =
+    document.getElementById(
+      "pipelineBoard"
+    );
+
+
+  if (
+    pipelineMain &&
+    board
+  ) {
+
+    pipelineMain.addEventListener(
+      "wheel",
+      event => {
+
+        /*
+         * Check whether the pointer is currently
+         * over a vertically scrollable stage.
+         */
+        const laneBody =
+          event.target.closest(
+            ".pipeline-lane-body"
+          );
+
+
+        /*
+         * Horizontal touchpad gesture:
+         * always move the Pipeline board horizontally.
+         */
+        if (
+          Math.abs(event.deltaX) >
+          Math.abs(event.deltaY)
+        ) {
+
+          event.preventDefault();
+
+          board.scrollLeft +=
+            event.deltaX;
+
+          return;
+        }
+
+
+        /*
+         * If we're over a stage that actually has
+         * vertical scrolling available, preserve
+         * normal up/down scrolling in that stage.
+         */
+        if (laneBody) {
+
+          const canScrollVertically =
+            laneBody.scrollHeight >
+            laneBody.clientHeight;
+
+
+          if (canScrollVertically) {
+
+            return;
+          }
+        }
+
+
+        /*
+         * Everywhere else in the light Pipeline area,
+         * convert vertical touchpad / mouse-wheel
+         * movement into horizontal board scrolling.
+         */
+        if (
+          event.deltaY !== 0
+        ) {
+
+          event.preventDefault();
+
+          board.scrollLeft +=
+            event.deltaY;
+        }
+
+      },
+      {
+        passive: false
+      }
+    );
+  }
 }
 
 
