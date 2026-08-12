@@ -2224,3 +2224,703 @@ a:hover {
   }
 
 }
+
+
+
+/* =========================================================
+   PIPELINE PAGE
+========================================================= */
+
+.pipeline-main {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   PIPELINE FILTER BAR
+========================================================= */
+
+.pipeline-filter-bar {
+  flex:
+    0
+    0
+    auto;
+}
+
+
+/* =========================================================
+   PIPELINE BOARD
+========================================================= */
+
+.pipeline-board {
+  flex:
+    1
+    1
+    auto;
+
+  min-height: 0;
+
+  display: flex;
+
+  align-items: stretch;
+
+  gap: 12px;
+
+  overflow-x: auto;
+
+  overflow-y: hidden;
+
+  padding:
+    2px
+    2px
+    8px;
+
+  overscroll-behavior-x: contain;
+}
+
+
+/* =========================================================
+   PIPELINE LANE
+========================================================= */
+
+.pipeline-lane {
+  flex:
+    0
+    0
+    260px;
+
+  min-width: 260px;
+
+  height: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    #F8FBFA;
+
+  box-shadow:
+    0 5px 18px rgba(2, 77, 79, 0.05);
+}
+
+
+/* =========================================================
+   PIPELINE LANE HEADER
+========================================================= */
+
+.pipeline-lane-header {
+  flex:
+    0
+    0
+    auto;
+
+  padding:
+    10px
+    11px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+}
+
+
+.pipeline-lane-title {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+
+.pipeline-lane-title span {
+  min-width: 0;
+
+  color:
+    var(--bc-dark-teal);
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.025em;
+
+  text-transform:
+    uppercase;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.pipeline-lane-title strong {
+  flex:
+    0
+    0
+    auto;
+
+  min-width:
+    22px;
+
+  height:
+    22px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    0
+    6px;
+
+  border-radius:
+    999px;
+
+  background:
+    var(--bc-white);
+
+  color:
+    var(--bc-dark-teal);
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+}
+
+
+/* =========================================================
+   PIPELINE LANE BODY
+========================================================= */
+
+.pipeline-lane-body {
+  flex:
+    1
+    1
+    auto;
+
+  min-height:
+    0;
+
+  overflow-y:
+    auto;
+
+  overflow-x:
+    hidden;
+
+  padding:
+    8px;
+
+  overscroll-behavior:
+    contain;
+}
+
+
+/* =========================================================
+   PIPELINE CARD
+========================================================= */
+
+.pipeline-card {
+  width:
+    100%;
+
+  margin-bottom:
+    8px;
+
+  padding:
+    10px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    9px;
+
+  background:
+    var(--bc-white);
+
+  box-shadow:
+    0 2px 7px rgba(2, 77, 79, 0.045);
+
+  cursor:
+    pointer;
+
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    transform 0.10s ease,
+    background 0.14s ease;
+}
+
+
+.pipeline-card:last-child {
+  margin-bottom:
+    0;
+}
+
+
+.pipeline-card:hover {
+  border-color:
+    var(--border-strong);
+
+  background:
+    #FCFFFE;
+
+  box-shadow:
+    0 5px 12px rgba(2, 77, 79, 0.08);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.pipeline-card:active {
+  transform:
+    translateY(0);
+}
+
+
+.pipeline-card:focus-visible {
+  outline:
+    2px solid
+    var(--bc-green);
+
+  outline-offset:
+    2px;
+}
+
+
+/* =========================================================
+   PIPELINE CARD CONTENT
+========================================================= */
+
+.pipeline-card-company {
+  color:
+    var(--text);
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  line-height:
+    1.3;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.pipeline-card-founder {
+  margin-top:
+    2px;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    9.5px;
+
+  line-height:
+    1.3;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.pipeline-card-divider {
+  height:
+    1px;
+
+  margin:
+    8px
+    0;
+
+  background:
+    var(--border);
+}
+
+
+.pipeline-card-row {
+  display:
+    grid;
+
+  grid-template-columns:
+    68px
+    minmax(0, 1fr);
+
+  gap:
+    7px;
+
+  align-items:
+    baseline;
+
+  margin-bottom:
+    5px;
+
+  font-size:
+    9.5px;
+
+  line-height:
+    1.35;
+}
+
+
+.pipeline-card-row:last-child {
+  margin-bottom:
+    0;
+}
+
+
+.pipeline-card-label {
+  color:
+    var(--text-faint);
+
+  font-size:
+    8.5px;
+
+  font-weight:
+    700;
+}
+
+
+.pipeline-card-row strong,
+.pipeline-card-row > span:last-child {
+  min-width:
+    0;
+
+  color:
+    var(--text-soft);
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.pipeline-card-warning {
+  color:
+    var(--warning) !important;
+}
+
+
+.pipeline-card-last {
+  padding-top:
+    5px;
+
+  border-top:
+    1px dashed
+    var(--border);
+}
+
+
+/* =========================================================
+   EMPTY PIPELINE STAGE
+========================================================= */
+
+.pipeline-empty-stage {
+  padding:
+    22px
+    10px;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    9px;
+
+  text-align:
+    center;
+}
+
+
+/* =========================================================
+   STAGE EMPHASIS
+========================================================= */
+
+.pipeline-lane-won
+.pipeline-lane-header {
+  background:
+    var(--success-soft);
+}
+
+
+.pipeline-lane-won
+.pipeline-lane-title span {
+  color:
+    var(--success);
+}
+
+
+.pipeline-lane-lost
+.pipeline-lane-header {
+  background:
+    var(--danger-soft);
+}
+
+
+.pipeline-lane-lost
+.pipeline-lane-title span {
+  color:
+    var(--danger-deep);
+}
+
+
+.pipeline-lane-archived {
+  opacity:
+    0.72;
+}
+
+
+.pipeline-lane-archived
+.pipeline-lane-header {
+  background:
+    #ECEFED;
+}
+
+
+.pipeline-lane-archived
+.pipeline-lane-title span {
+  color:
+    #68706D;
+}
+
+
+/* =========================================================
+   PIPELINE DESKTOP HEIGHT / SCROLLING
+========================================================= */
+
+@media (min-width: 1051px) {
+
+  .pipeline-main {
+    height:
+      100vh;
+
+    display:
+      flex;
+
+    flex-direction:
+      column;
+
+    overflow:
+      hidden;
+  }
+
+
+  .pipeline-main
+  .page-header,
+  .pipeline-main
+  .filter-bar,
+  .pipeline-main
+  .status-panel {
+    flex:
+      0
+      0
+      auto;
+  }
+
+
+  .pipeline-board {
+    flex:
+      1
+      1
+      auto;
+
+    min-height:
+      0;
+  }
+
+
+  .pipeline-lane {
+    height:
+      100%;
+  }
+
+}
+
+
+/* =========================================================
+   PIPELINE MEDIUM WIDTH
+========================================================= */
+
+@media (max-width: 1250px) {
+
+  .pipeline-filter-bar {
+    flex-wrap:
+      wrap;
+  }
+
+
+  .pipeline-filter-bar
+  .filter-search {
+    flex:
+      1
+      1
+      100%;
+  }
+
+
+  .pipeline-filter-bar
+  .filter-group {
+    flex:
+      1
+      1
+      100%;
+  }
+
+
+  .pipeline-filter-bar
+  .filter-group select {
+    flex:
+      1
+      1
+      0;
+
+    max-width:
+      none;
+  }
+
+}
+
+
+/* =========================================================
+   PIPELINE TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  .pipeline-main {
+    overflow:
+      visible;
+  }
+
+
+  .pipeline-board {
+    min-height:
+      620px;
+
+    overflow-x:
+      auto;
+
+    overflow-y:
+      hidden;
+  }
+
+
+  .pipeline-lane {
+    height:
+      620px;
+  }
+
+}
+
+
+/* =========================================================
+   PIPELINE MOBILE
+========================================================= */
+
+@media (max-width: 760px) {
+
+  .pipeline-main
+  .page-header {
+    flex-direction:
+      row;
+
+    align-items:
+      center;
+  }
+
+
+  .pipeline-filter-bar
+  .filter-group {
+    flex-direction:
+      column;
+  }
+
+
+  .pipeline-filter-bar
+  .filter-group select {
+    width:
+      100%;
+  }
+
+
+  .pipeline-board {
+    min-height:
+      560px;
+  }
+
+
+  .pipeline-lane {
+    flex-basis:
+      240px;
+
+    min-width:
+      240px;
+
+    height:
+      560px;
+  }
+
+}
+
+
+/* =========================================================
+   PIPELINE SMALL MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .pipeline-main
+  .page-header {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+  }
+
+
+  .pipeline-lane {
+    flex-basis:
+      225px;
+
+    min-width:
+      225px;
+  }
+
+}
+
+
