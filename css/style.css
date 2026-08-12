@@ -285,14 +285,17 @@ a:hover {
 
   text-align: left;
 
+  text-decoration: none;
+   
   transition:
     background 0.15s ease,
     color 0.15s ease;
 }
 
 
-.nav-item:hover:not(:disabled) {
+.nav-item:hover {
   background: var(--sidebar-soft);
+  text-decoration: none;
 }
 
 
