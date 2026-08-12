@@ -2266,9 +2266,13 @@ a:hover {
 
   gap: 12px;
 
-  overflow-x: auto;
+  scroll-behavior: smooth;
 
-  overflow-y: hidden;
+overscroll-behavior-x: contain;
+
+touch-action: pan-x pan-y;
+
+-webkit-overflow-scrolling: touch;
 
   padding:
     2px
