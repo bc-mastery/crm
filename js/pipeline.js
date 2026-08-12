@@ -206,84 +206,6 @@ function bindPipelineEvents() {
         await loadPipelineLeads();
       }
     );
-
-
-  /*
-   * Touchpad / mouse-wheel horizontal Pipeline scrolling.
-   */
-    if (board) {
-
-  board.addEventListener(
-    "wheel",
-    event => {
-
-      const laneBody =
-        event.target.closest(
-          ".pipeline-lane-body"
-        );
-
-
-      /*
-       * If the pointer is over a lane and that lane
-       * can actually scroll vertically, keep normal
-       * vertical lane scrolling.
-       */
-      if (laneBody) {
-
-        const canScrollVertically =
-          laneBody.scrollHeight >
-          laneBody.clientHeight;
-
-
-        if (
-          canScrollVertically &&
-          Math.abs(event.deltaY) >
-          Math.abs(event.deltaX)
-        ) {
-
-          return;
-        }
-      }
-
-
-      /*
-       * Horizontal touchpad gesture:
-       * move the Pipeline horizontally.
-       */
-      if (
-        Math.abs(event.deltaX) >
-        0
-      ) {
-
-        event.preventDefault();
-
-        board.scrollLeft +=
-          event.deltaX;
-
-        return;
-      }
-
-
-      /*
-       * Vertical wheel gesture outside a vertically
-       * scrollable lane becomes horizontal movement.
-       */
-      if (
-        event.deltaY !== 0
-      ) {
-
-        event.preventDefault();
-
-        board.scrollLeft +=
-          event.deltaY;
-      }
-
-    },
-    {
-      passive: false
-    }
-  );
-  }
 }
 
 
@@ -794,9 +716,6 @@ function createPipelineLane(
     .forEach(
       card => {
 
-        /*
-         * Mouse / touch navigation.
-         */
         card.addEventListener(
           "click",
           () => {
@@ -808,9 +727,6 @@ function createPipelineLane(
         );
 
 
-        /*
-         * Keyboard navigation.
-         */
         card.addEventListener(
           "keydown",
           event => {
@@ -1182,9 +1098,6 @@ function comparePipelineDates(
     );
 
 
-  /*
-   * Empty dates always go to the bottom.
-   */
   if (
     timeA === null &&
     timeB === null
@@ -1368,9 +1281,6 @@ function parsePipelineDateTime(
     Number.isFinite(value)
   ) {
 
-    /*
-     * JavaScript timestamp in milliseconds.
-     */
     if (
       value >
       100000000000
