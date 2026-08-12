@@ -207,19 +207,34 @@
           <select id="icpFilter">
 
             <option value="">
-              All ICP levels
+              All ICP fits
             </option>
 
-            <option value="HIGH">
-              High ICP
+          </select>
+
+
+          <select id="researchStatusFilter">
+
+            <option value="">
+              All research statuses
             </option>
 
-            <option value="MEDIUM">
-              Medium ICP
+          </select>
+
+
+          <select id="nextActionTypeFilter">
+
+            <option value="">
+              All next actions
             </option>
 
-            <option value="LOW">
-              Low ICP
+          </select>
+
+
+          <select id="responsibleFilter">
+
+            <option value="">
+              All responsible users
             </option>
 
           </select>
@@ -256,7 +271,7 @@
 
         <div class="lead-list-panel">
 
-          <div class="panel-header">
+          <div class="panel-header lead-list-header">
 
             <div>
 
@@ -267,6 +282,51 @@
               <p id="leadCount">
                 0 leads
               </p>
+
+            </div>
+
+
+            <div class="lead-list-order">
+
+              <label
+                for="listOrder"
+                class="lead-list-order-label"
+              >
+                List order
+              </label>
+
+
+              <select id="listOrder">
+
+                <option value="newest">
+                  Newest to oldest
+                </option>
+
+                <option value="oldest">
+                  Oldest to newest
+                </option>
+
+                <option value="company_az">
+                  Company A-Z
+                </option>
+
+                <option value="next_action_asc">
+                  Next action: earliest to latest
+                </option>
+
+                <option value="next_action_desc">
+                  Next action: latest to earliest
+                </option>
+
+                <option value="last_action_asc">
+                  Last action: earliest to latest
+                </option>
+
+                <option value="last_action_desc">
+                  Last action: latest to earliest
+                </option>
+
+              </select>
 
             </div>
 
@@ -281,28 +341,28 @@
 
                 <tr>
 
-                  <th>
+                  <th class="col-company">
                     Company
                   </th>
 
-                  <th>
+                  <th class="col-founder">
                     Founder
                   </th>
 
-                  <th>
-                    ICP
-                  </th>
-
-                  <th>
+                  <th class="col-stage">
                     Stage
                   </th>
 
-                  <th>
+                  <th class="col-next-action-date">
+                    Next action date
+                  </th>
+
+                  <th class="col-next-action">
                     Next action
                   </th>
 
-                  <th>
-                    Responsible
+                  <th class="col-last-action-date">
+                    Last action date
                   </th>
 
                 </tr>
