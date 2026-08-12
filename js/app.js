@@ -1035,6 +1035,31 @@ function renderLeadDetail(
   }
 
 
+  /*
+   * Preserve the current internal scroll position
+   * whenever the same Lead card is re-rendered.
+   */
+  const previousScrollBody =
+    panel.querySelector(
+      ".detail-scroll-body"
+    );
+
+
+  const previousScrollTop =
+    previousScrollBody
+      ? previousScrollBody.scrollTop
+      : 0;
+
+
+  panel.className =
+    "detail-panel";
+
+
+  if (!panel) {
+    return;
+  }
+
+
   panel.className =
     "detail-panel";
 
@@ -1509,6 +1534,23 @@ function renderLeadDetail(
 
 
   bindLeadDetailEvents();
+
+
+  /*
+   * Restore the internal card scroll position
+   * after the HTML has been recreated.
+   */
+  const newScrollBody =
+    panel.querySelector(
+      ".detail-scroll-body"
+    );
+
+
+  if (newScrollBody) {
+
+    newScrollBody.scrollTop =
+      previousScrollTop;
+  }
 }
 
 
@@ -2067,7 +2109,7 @@ function renderSaveBar() {
       </div>
 
 
-      <div class="lead-save-content">
+      <div class="lead-save-status-section">
 
         <span class="lead-save-status">
 
@@ -2085,6 +2127,10 @@ function renderSaveBar() {
 
         </span>
 
+      </div>
+
+
+      <div class="lead-save-button-section">
 
         <button
           type="button"
