@@ -1097,3 +1097,716 @@ a:hover {
   }
 
 }
+
+
+/* =========================================================
+   CRM INTERACTION UPGRADE
+========================================================= */
+
+
+/* =========================================================
+   FIXED DESKTOP WORKSPACE
+========================================================= */
+
+@media (min-width: 1051px) {
+
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .crm-app {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .main-content {
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    padding-bottom: 24px;
+  }
+
+  .page-header,
+  .filter-bar,
+  .status-panel {
+    flex: 0 0 auto;
+  }
+
+  .crm-workspace {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    align-items: stretch;
+  }
+
+  .lead-list-panel,
+  .detail-panel {
+    height: 100%;
+
+    min-height: 0;
+  }
+
+  .lead-list-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lead-list-panel .panel-header {
+    flex: 0 0 auto;
+  }
+
+  .table-container {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    overflow:
+      auto;
+  }
+
+  .detail-panel {
+    position: static;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    overscroll-behavior: contain;
+  }
+
+}
+
+
+/* =========================================================
+   SAVE BAR
+========================================================= */
+
+.lead-save-bar {
+  display: grid;
+
+  grid-template-columns:
+    105px
+    minmax(0, 1fr);
+
+  gap: 12px;
+
+  align-items: center;
+
+  padding:
+    12px
+    22px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+}
+
+.lead-save-status {
+  grid-column: 2;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    11px;
+
+  font-weight:
+    600;
+}
+
+.save-lead-button {
+  grid-column: 2;
+
+  justify-self: end;
+
+  margin-top:
+    -27px;
+
+  min-height:
+    32px;
+
+  padding:
+    0
+    13px;
+
+  border:
+    0;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--bc-green);
+
+  color:
+    var(--bc-white);
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.save-lead-button:hover:not(:disabled) {
+  background:
+    var(--accent-hover);
+}
+
+.save-lead-button:disabled {
+  opacity:
+    0.38;
+
+  cursor:
+    default;
+}
+
+
+/* =========================================================
+   DISPLAY + EDIT PENCIL
+========================================================= */
+
+.detail-display-editable {
+  min-width: 0;
+
+  display: flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    7px;
+}
+
+.detail-display-editable .detail-value {
+  flex:
+    1 1 auto;
+}
+
+.field-edit-button,
+.field-edit-cancel {
+  flex:
+    0 0 auto;
+
+  width:
+    22px;
+
+  height:
+    22px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    0;
+
+  border:
+    0;
+
+  border-radius:
+    5px;
+
+  background:
+    transparent;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    15px;
+
+  line-height:
+    1;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.field-edit-button:hover,
+.field-edit-cancel:hover {
+  background:
+    var(--surface-soft);
+
+  color:
+    var(--bc-dark-teal);
+}
+
+
+/* =========================================================
+   INLINE EDIT CONTROLS
+========================================================= */
+
+.detail-edit-wrap {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    6px;
+}
+
+.crm-inline-input {
+  width:
+    100%;
+
+  min-width:
+    0;
+
+  min-height:
+    30px;
+
+  padding:
+    5px
+    8px;
+
+  border:
+    1px solid
+    var(--border-strong);
+
+  border-radius:
+    6px;
+
+  background:
+    var(--bc-white);
+
+  color:
+    var(--text);
+
+  outline:
+    none;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.35;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.crm-inline-input:focus {
+  border-color:
+    var(--bc-green);
+
+  box-shadow:
+    0 0 0 2px
+    rgba(48, 186, 128, 0.10);
+}
+
+.crm-inline-textarea {
+  min-height:
+    80px;
+
+  resize:
+    vertical;
+}
+
+
+/* =========================================================
+   MILESTONE BUTTONS
+========================================================= */
+
+.milestone-grid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    8px;
+}
+
+.milestone-button {
+  min-height:
+    48px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
+
+  align-items:
+    flex-start;
+
+  gap:
+    2px;
+
+  padding:
+    8px
+    10px;
+
+  border:
+    1px solid
+    #DCE4E1;
+
+  border-radius:
+    8px;
+
+  background:
+    #F1F4F3;
+
+  color:
+    var(--text-soft);
+
+  text-align:
+    left;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.milestone-button:hover {
+  border-color:
+    var(--border-strong);
+
+  background:
+    #EBF0EE;
+}
+
+.milestone-button:active {
+  transform:
+    scale(0.985);
+}
+
+.milestone-button.completed {
+  border-color:
+    #93E5C7;
+
+  background:
+    var(--bc-light-green);
+
+  color:
+    var(--bc-dark-teal);
+}
+
+.milestone-label {
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+}
+
+.milestone-time {
+  color:
+    var(--bc-mid-teal);
+
+  font-size:
+    9px;
+
+  font-weight:
+    600;
+}
+
+.milestone-help {
+  margin:
+    9px
+    0
+    0;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    9px;
+}
+
+
+/* =========================================================
+   OUTCOME
+========================================================= */
+
+.outcome-section {
+  background:
+    #FBFCFC;
+}
+
+.outcome-actions {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:
+    10px;
+}
+
+.outcome-button {
+  min-height:
+    50px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    2px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    9px;
+
+  background:
+    var(--bc-white);
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.outcome-button:active {
+  transform:
+    scale(0.985);
+}
+
+.outcome-button small {
+  font-size:
+    8px;
+
+  font-weight:
+    600;
+}
+
+.outcome-won {
+  color:
+    var(--bc-green);
+}
+
+.outcome-won:hover,
+.outcome-won.active {
+  border-color:
+    var(--bc-green);
+
+  background:
+    var(--bc-green);
+
+  color:
+    var(--bc-white);
+}
+
+.outcome-lost {
+  color:
+    #8C2E35;
+}
+
+.outcome-lost:hover,
+.outcome-lost.active {
+  border-color:
+    #8C2E35;
+
+  background:
+    #8C2E35;
+
+  color:
+    var(--bc-white);
+}
+
+
+/* =========================================================
+   ARCHIVE / DANGER
+========================================================= */
+
+.archive-section {
+  border-top:
+    2px solid
+    #8C2E35 !important;
+
+  background:
+    #531E23;
+
+  color:
+    var(--bc-white);
+}
+
+.archive-section h3 {
+  color:
+    #F7D8DA;
+}
+
+.archive-row {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+}
+
+.archive-row strong {
+  font-size:
+    12px;
+}
+
+.archive-row p {
+  margin:
+    4px
+    0
+    0;
+
+  color:
+    #E5BFC2;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.45;
+}
+
+.archive-button {
+  flex:
+    0 0 auto;
+
+  min-height:
+    34px;
+
+  padding:
+    0
+    13px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.40);
+
+  border-radius:
+    7px;
+
+  background:
+    transparent;
+
+  color:
+    var(--bc-white);
+
+  font-size:
+    11px;
+
+  font-weight:
+    750;
+}
+
+.archive-button:hover {
+  background:
+    rgba(255, 255, 255, 0.10);
+}
+
+
+/* =========================================================
+   BUSY STATE
+========================================================= */
+
+.detail-panel.workflow-busy {
+  pointer-events:
+    none;
+
+  opacity:
+    0.72;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .lead-save-bar {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      8px;
+  }
+
+  .lead-save-status,
+  .save-lead-button {
+    grid-column:
+      1;
+
+    margin-top:
+      0;
+  }
+
+  .save-lead-button {
+    justify-self:
+      stretch;
+  }
+
+  .milestone-grid,
+  .outcome-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+  .archive-row {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+  }
+
+}
