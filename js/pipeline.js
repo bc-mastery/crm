@@ -103,6 +103,109 @@ async function initializePipeline() {
 }
 
 
+document
+  .getElementById(
+    "pipelineRefreshButton"
+  )
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        PIPELINE_STATE.meta =
+          await getCrmMeta();
+
+      } catch (error) {
+
+        console.error(error);
+      }
+
+
+      await loadPipelineLeads();
+    }
+  );
+
+
+  /*
+   * Touchpad / mouse-wheel horizontal Pipeline scrolling.
+   *
+   * When the pointer is over the board itself,
+   * vertical wheel movement moves the Pipeline horizontally.
+   *
+   * Vertical scrolling inside an individual stage lane
+   * remains available.
+   */
+  const board =
+    document.getElementById(
+      "pipelineBoard"
+    );
+
+
+  if (board) {
+
+    board.addEventListener(
+      "wheel",
+      event => {
+
+        /*
+         * If the pointer is currently over a vertically
+         * scrollable stage body, let that stage scroll
+         * vertically normally.
+         */
+        const laneBody =
+          event.target.closest(
+            ".pipeline-lane-body"
+          );
+
+
+        if (laneBody) {
+
+          const canScrollVertically =
+            laneBody.scrollHeight >
+            laneBody.clientHeight;
+
+
+          if (canScrollVertically) {
+
+            return;
+          }
+        }
+
+
+        /*
+         * Native horizontal touchpad movement.
+         */
+        if (
+          Math.abs(event.deltaX) >
+          Math.abs(event.deltaY)
+        ) {
+
+          return;
+        }
+
+
+        /*
+         * Convert vertical wheel/touchpad movement
+         * into horizontal Pipeline movement.
+         */
+        if (event.deltaY !== 0) {
+
+          event.preventDefault();
+
+          board.scrollLeft +=
+            event.deltaY;
+        }
+
+      },
+      {
+        passive: false
+      }
+    );
+  }
+}
+
+
 /* =========================================================
  * LOAD
  * ========================================================= */
