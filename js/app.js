@@ -5,82 +5,55 @@
 
 
 /* =========================================================
- * CRM STATE
+ * STATE
  * ========================================================= */
 
 let CRM_STATE = {
 
   leads: [],
-
   filteredLeads: [],
 
-  selectedLeadId:
-    null,
+  selectedLeadId: null,
+  selectedLead: null,
 
-  selectedLead:
-    null,
+  meta: null,
 
-  pendingUpdates:
-    {}
+  pendingUpdates: {},
+
+  editingField: null,
+
+  workflowBusy: false
 };
 
 
 /* =========================================================
- * PROTECTED FIELDS
- *
- * These fields are visible where relevant,
- * but cannot be edited from the CRM.
- * ========================================================= */
-
-const CRM_PROTECTED_FIELDS = [
-
-  "Lead_id",
-
-  "Company_name",
-  "Clutch_url",
-  "Clutch_intro",
-  "Manpower",
-  "Project_size",
-  "Location",
-  "Country",
-  "Quick_evaluation",
-
-  "Company_lead",
-  "Founder_lead",
-  "FL_date",
-
-  "Research_status",
-  "Data_confidence",
-  "ICP_fit_level",
-
-  "T_issue",
-  "O_issue",
-  "M_issue",
-  "S_issue",
-
-  "Outreach_angle",
-  "Research_notes",
-
-  "Raw_json"
-];
-
-
-/* =========================================================
- * INITIALIZATION
+ * INIT
  * ========================================================= */
 
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
-
-    initializeCrmApp();
-  }
+  initializeCrmApp
 );
 
 
 async function initializeCrmApp() {
 
   bindCrmUiEvents();
+
+
+  try {
+
+    CRM_STATE.meta =
+      await getCrmMeta();
+
+  } catch (error) {
+
+    console.error(
+      "Could not load CRM metadata.",
+      error
+    );
+  }
+
 
   await loadCrmLeads();
 }
@@ -131,9 +104,7 @@ async function loadCrmLeads() {
 
   } catch (error) {
 
-    console.error(
-      error
-    );
+    console.error(error);
 
 
     showCrmStatus(
@@ -146,7 +117,7 @@ async function loadCrmLeads() {
 
 
 /* =========================================================
- * UI EVENTS
+ * GLOBAL UI EVENTS
  * ========================================================= */
 
 function bindCrmUiEvents() {
@@ -175,58 +146,62 @@ function bindCrmUiEvents() {
     );
 
 
-  if (searchInput) {
-
-    searchInput.addEventListener(
+  searchInput
+    ?.addEventListener(
       "input",
       applyLeadFilters
     );
-  }
 
 
-  if (stageFilter) {
-
-    stageFilter.addEventListener(
+  stageFilter
+    ?.addEventListener(
       "change",
       applyLeadFilters
     );
-  }
 
 
-  if (icpFilter) {
-
-    icpFilter.addEventListener(
+  icpFilter
+    ?.addEventListener(
       "change",
       applyLeadFilters
     );
-  }
 
 
-  if (refreshButton) {
-
-    refreshButton.addEventListener(
+  refreshButton
+    ?.addEventListener(
       "click",
       async () => {
 
         CRM_STATE.selectedLeadId =
           null;
 
-
         CRM_STATE.selectedLead =
           null;
 
-
         CRM_STATE.pendingUpdates =
           {};
+
+        CRM_STATE.editingField =
+          null;
 
 
         renderEmptyLeadDetail();
 
 
+        try {
+
+          CRM_STATE.meta =
+            await getCrmMeta();
+
+        } catch (error) {
+
+          console.error(error);
+        }
+
+
         await loadCrmLeads();
       }
     );
-  }
 }
 
 
@@ -273,56 +248,53 @@ function applyLeadFilters() {
 
 
   const filtered =
-    CRM_STATE.leads.filter(
-      lead => {
+    CRM_STATE.leads
+      .filter(
+        lead => {
 
-        const searchable =
-          [
+          const searchable =
+            [
+              lead.Company_name,
+              lead.Founder_1_name,
+              lead.Lead_id,
+              lead.Website,
+              lead.Responsible_email,
+              lead.Responsible_name
+            ]
+              .join(" ")
+              .toLowerCase();
 
-            lead.Company_name,
-            lead.Founder_1_name,
-            lead.Lead_id,
-            lead.Website,
-            lead.Responsible_email
 
-          ]
-            .join(" ")
-            .toLowerCase();
+          const matchesSearch =
+            !searchValue ||
+            searchable.includes(
+              searchValue
+            );
 
 
-        const matchesSearch =
-          !searchValue ||
-          searchable.includes(
-            searchValue
+          const matchesStage =
+            !stageValue ||
+            String(
+              lead.Pipeline_stage || ""
+            ).toUpperCase() ===
+              stageValue;
+
+
+          const matchesIcp =
+            !icpValue ||
+            String(
+              lead.ICP_fit_level || ""
+            ).toUpperCase() ===
+              icpValue;
+
+
+          return (
+            matchesSearch &&
+            matchesStage &&
+            matchesIcp
           );
-
-
-        const matchesStage =
-          !stageValue ||
-          String(
-            lead.Pipeline_stage || ""
-          )
-            .toUpperCase() ===
-          stageValue;
-
-
-        const matchesIcp =
-          !icpValue ||
-          String(
-            lead.ICP_fit_level || ""
-          )
-            .toUpperCase() ===
-          icpValue;
-
-
-        return (
-
-          matchesSearch &&
-          matchesStage &&
-          matchesIcp
-        );
-      }
-    );
+        }
+      );
 
 
   CRM_STATE.filteredLeads =
@@ -341,7 +313,7 @@ function applyLeadFilters() {
 
 
 /* =========================================================
- * PIPELINE FILTER OPTIONS
+ * PIPELINE FILTER
  * ========================================================= */
 
 function populatePipelineStageFilter(
@@ -422,7 +394,7 @@ function populatePipelineStageFilter(
 
 
 /* =========================================================
- * LEAD TABLE
+ * TABLE
  * ========================================================= */
 
 function renderLeadTable(
@@ -440,38 +412,25 @@ function renderLeadTable(
   }
 
 
-  tbody.innerHTML =
-    "";
+  tbody.innerHTML = "";
 
 
   if (
-    !Array.isArray(
-      leads
-    ) ||
-    leads.length === 0
+    !Array.isArray(leads) ||
+    !leads.length
   ) {
 
-    const row =
-      document.createElement(
-        "tr"
-      );
+    tbody.innerHTML = `
 
-
-    row.innerHTML = `
-
-      <td
-        colspan="6"
-        class="empty-table-cell"
-      >
-        No leads match the current filters.
-      </td>
+      <tr>
+        <td
+          colspan="6"
+          class="empty-table-cell"
+        >
+          No leads match the current filters.
+        </td>
+      </tr>
     `;
-
-
-    tbody.appendChild(
-      row
-    );
-
 
     return;
   }
@@ -530,63 +489,52 @@ function renderLeadTable(
 
 
         <td>
-
           ${escapeHtml(
             lead.Founder_1_name ||
             "—"
           )}
-
         </td>
 
 
         <td>
-
           ${renderCrmBadge(
             lead.ICP_fit_level,
             "icp"
           )}
-
         </td>
 
 
         <td>
-
           ${renderCrmBadge(
             lead.Pipeline_stage,
             "stage"
           )}
-
         </td>
 
 
         <td>
-
           ${renderNextAction(
             lead
           )}
-
         </td>
 
 
         <td>
-
           ${escapeHtml(
+            lead.Responsible_name ||
             lead.Responsible_email ||
             "—"
           )}
-
         </td>
       `;
 
 
       row.addEventListener(
         "click",
-        () => {
-
+        () =>
           selectCrmLead(
             lead.Lead_id
-          );
-        }
+          )
       );
 
 
@@ -599,7 +547,7 @@ function renderLeadTable(
 
 
 /* =========================================================
- * SELECT / LOAD LEAD
+ * SELECT LEAD
  * ========================================================= */
 
 async function selectCrmLead(
@@ -617,6 +565,10 @@ async function selectCrmLead(
 
   CRM_STATE.pendingUpdates =
     {};
+
+
+  CRM_STATE.editingField =
+    null;
 
 
   renderLeadTable(
@@ -646,9 +598,7 @@ async function selectCrmLead(
 
   } catch (error) {
 
-    console.error(
-      error
-    );
+    console.error(error);
 
 
     renderLeadDetailError(
@@ -659,7 +609,7 @@ async function selectCrmLead(
 
 
 /* =========================================================
- * LEAD DETAIL
+ * DETAIL
  * ========================================================= */
 
 function renderLeadDetail(
@@ -677,9 +627,15 @@ function renderLeadDetail(
   }
 
 
-  panel.classList.remove(
-    "empty"
-  );
+  panel.className =
+    "detail-panel";
+
+
+  const isManager =
+    CRM_STATE.meta
+      ?.user
+      ?.role ===
+        "manager";
 
 
   panel.innerHTML = `
@@ -689,21 +645,16 @@ function renderLeadDetail(
       <div>
 
         <span class="detail-eyebrow">
-
           ${escapeHtml(
             lead.Lead_id || ""
           )}
-
         </span>
 
-
         <h2>
-
           ${escapeHtml(
             lead.Company_name ||
             "Unnamed company"
           )}
-
         </h2>
 
       </div>
@@ -721,53 +672,27 @@ function renderLeadDetail(
     </div>
 
 
-    <div
-      id="leadSaveBar"
-      class="lead-save-bar"
-    >
-
-      <span
-        id="leadSaveStatus"
-        class="lead-save-status"
-      >
-        No unsaved changes
-      </span>
-
-
-      <button
-        type="button"
-        id="saveLeadButton"
-        class="save-lead-button"
-        disabled
-      >
-        Save changes
-      </button>
-
-    </div>
+    ${renderSaveBar()}
 
 
     <div class="detail-section">
 
-      <h3>
-        Company
-      </h3>
+      <h3>Company</h3>
 
+      ${renderEditableField({
+        label: "Website",
+        field: "Website",
+        value: lead.Website,
+        type: "url"
+      })}
 
-      ${renderEditableDetailField(
-        "Website",
-        "Website",
-        lead.Website,
-        "url"
-      )}
-
-
-      ${renderReadOnlyLinkField(
+      ${renderReadOnlyField(
         "Clutch",
-        lead.Clutch_url
+        lead.Clutch_url,
+        true
       )}
 
-
-      ${renderDetailField(
+      ${renderReadOnlyField(
         "Location",
         combineLocation(
           lead.Location,
@@ -775,14 +700,12 @@ function renderLeadDetail(
         )
       )}
 
-
-      ${renderDetailField(
+      ${renderReadOnlyField(
         "Manpower",
         lead.Manpower
       )}
 
-
-      ${renderDetailField(
+      ${renderReadOnlyField(
         "Project size",
         lead.Project_size
       )}
@@ -792,248 +715,54 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>
-        Founder
-      </h3>
+      <h3>Founder</h3>
 
+      ${renderEditableField({
+        label: "Name",
+        field: "Founder_1_name",
+        value: lead.Founder_1_name
+      })}
 
-      ${renderEditableDetailField(
-        "Name",
-        "Founder_1_name",
-        lead.Founder_1_name
-      )}
+      ${renderEditableField({
+        label: "LinkedIn",
+        field: "Founder_1_LinkedIn",
+        value: lead.Founder_1_LinkedIn,
+        type: "url"
+      })}
 
-
-      ${renderEditableDetailField(
-        "LinkedIn",
-        "Founder_1_LinkedIn",
-        lead.Founder_1_LinkedIn,
-        "url"
-      )}
-
-
-      ${renderEditableDetailField(
-        "Email",
-        "Founder_1_email",
-        lead.Founder_1_email,
-        "email"
-      )}
+      ${renderEditableField({
+        label: "Email",
+        field: "Founder_1_email",
+        value: lead.Founder_1_email,
+        type: "email"
+      })}
 
     </div>
 
 
     <div class="detail-section">
 
-      <h3>
-        Qualification
-      </h3>
-
-
-      ${renderDetailField(
-        "ICP fit",
-        lead.ICP_fit_level
-      )}
-
-
-      ${renderDetailField(
-        "Research status",
-        lead.Research_status
-      )}
-
-
-      ${renderEditableDetailField(
-        "Responsible",
-        "Responsible_email",
-        lead.Responsible_email,
-        "email"
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Pipeline
-      </h3>
-
-
-      ${renderEditableDetailField(
-        "Pipeline stage",
-        "Pipeline_stage",
-        lead.Pipeline_stage
-      )}
-
-
-      ${renderEditableDetailField(
-        "Conclusion",
-        "Conclusion",
-        lead.Conclusion,
-        "textarea"
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Next action
-      </h3>
-
-
-      ${renderEditableDetailField(
-        "Type",
-        "Next_action_type",
-        lead.Next_action_type
-      )}
-
-
-      ${renderEditableDetailField(
-        "Due",
-        "Next_action_at",
-        lead.Next_action_at,
-        "datetime-local"
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Contact progress
-      </h3>
-
-
-      ${renderEditableCheckboxField(
-        "Connection request",
-        "CR",
-        lead.CR
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Connection accepted",
-        "CA",
-        lead.CA
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Message sent",
-        "MS",
-        lead.MS
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Response received",
-        "RT",
-        lead.RT
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Deal progress
-      </h3>
-
-
-      ${renderEditableCheckboxField(
-        "Review Call Offered",
-        "Review Call Offered",
-        lead["Review Call Offered"]
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Review Call Booked",
-        "Review Call Booked",
-        lead["Review Call Booked"]
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "GS Sent",
-        "GS Sent",
-        lead["GS Sent"]
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "GS Completed",
-        "GS Completed",
-        lead["GS Completed"]
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Review Call Done",
-        "Review Call Done",
-        lead["Review Call Done"]
-      )}
-
-
-      ${renderEditableCheckboxField(
-        "Proposal Sent",
-        "Proposal Sent",
-        lead["Proposal Sent"]
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Response
-      </h3>
-
-
-      ${renderEditableDetailField(
-        "Response content",
-        "Response content",
-        lead["Response content"],
-        "textarea"
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>
-        Research notes
-      </h3>
-
+      <h3>Research notes</h3>
 
       ${renderTextBlock(
         "Targeting",
         lead.T_issue
       )}
 
-
       ${renderTextBlock(
         "Offer",
         lead.O_issue
       )}
-
 
       ${renderTextBlock(
         "Marketing",
         lead.M_issue
       )}
 
-
       ${renderTextBlock(
         "Sales",
         lead.S_issue
       )}
-
 
       ${renderTextBlock(
         "Outreach angle",
@@ -1045,30 +774,894 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>
-        Record
-      </h3>
+      <h3>Qualification</h3>
 
-
-      ${renderEditableCheckboxField(
-        "Archived",
-        "Is_archived",
-        lead.Is_archived
+      ${renderReadOnlyField(
+        "ICP fit",
+        lead.ICP_fit_level
       )}
+
+      ${renderReadOnlyField(
+        "Research status",
+        lead.Research_status
+      )}
+
+      ${
+        isManager
+
+          ? renderResponsibleField(
+              lead
+            )
+
+          : renderReadOnlyField(
+              "Responsible",
+              lead.Responsible_name ||
+              lead.Responsible_email
+            )
+      }
+
+      ${renderReadOnlyField(
+        "Pipeline stage",
+        lead.Pipeline_stage
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>Next action</h3>
+
+      ${renderNextActionTypeField(
+        lead
+      )}
+
+      ${renderEditableField({
+        label: "Due",
+        field: "Next_action_at",
+        value: lead.Next_action_at,
+        type: "datetime-local"
+      })}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>Contact progress</h3>
+
+      <div class="milestone-grid">
+
+        ${renderMilestoneButton(
+          lead,
+          "CR",
+          "Connection request sent",
+          "Connection_request_sent"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "CA",
+          "Connection accepted",
+          "Connection_accepted"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "MS",
+          "Message sent",
+          "Message_sent"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "RT",
+          "Responded",
+          "Response_time"
+        )}
+
+      </div>
+
+      <p class="milestone-help">
+        Double-click a stage to change its status.
+      </p>
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>Deal progress</h3>
+
+      <div class="milestone-grid">
+
+        ${renderMilestoneButton(
+          lead,
+          "REVIEW_CALL_OFFERED",
+          "Review Call Offered",
+          "RC_offered_time",
+          "Review Call Offered"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "REVIEW_CALL_BOOKED",
+          "Review Call Booked",
+          "RC_booked_time",
+          "Review Call Booked"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "GS_SENT",
+          "GS Sent",
+          "GS_sent_time",
+          "GS Sent"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "GS_COMPLETED",
+          "GS Completed",
+          "GS_completed_time",
+          "GS Completed"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "REVIEW_CALL_DONE",
+          "Review Call Done",
+          "RC_done_time",
+          "Review Call Done"
+        )}
+
+        ${renderMilestoneButton(
+          lead,
+          "PROPOSAL_SENT",
+          "Proposal Sent",
+          "Proposal_time",
+          "Proposal Sent"
+        )}
+
+      </div>
+
+      <p class="milestone-help">
+        Double-click a stage to change its status.
+      </p>
+
+    </div>
+
+
+    <div class="detail-section outcome-section">
+
+      <h3>Outcome</h3>
+
+      <div class="outcome-actions">
+
+        ${renderOutcomeButton(
+          "WON",
+          "Won",
+          lead.Won,
+          lead.Won_time
+        )}
+
+        ${renderOutcomeButton(
+          "LOST",
+          "Lost",
+          lead.Lost,
+          lead.Lost_time
+        )}
+
+      </div>
+
+      <p class="milestone-help">
+        Double-click an outcome to confirm it.
+      </p>
+
+    </div>
+
+
+    ${renderOptionalEditableText(
+      "Conclusion",
+      "Conclusion",
+      lead.Conclusion
+    )}
+
+
+    ${renderOptionalEditableText(
+      "Response",
+      "Response content",
+      lead["Response content"]
+    )}
+
+
+    <div class="detail-section archive-section">
+
+      <h3>Record status</h3>
+
+      <div class="archive-row">
+
+        <div>
+
+          <strong>
+            ${
+              normalizeCrmBoolean(
+                lead.Is_archived
+              )
+                ? "Archived"
+                : "Active record"
+            }
+          </strong>
+
+          <p>
+            ${
+              normalizeCrmBoolean(
+                lead.Is_archived
+              )
+                ? "This lead is currently archived."
+                : "Archive only when this record should no longer remain active."
+            }
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="archive-button"
+          data-archive-toggle
+        >
+          ${
+            normalizeCrmBoolean(
+              lead.Is_archived
+            )
+              ? "Unarchive"
+              : "Archive"
+          }
+        </button>
+
+      </div>
 
     </div>
   `;
 
 
-  bindLeadDetailEditEvents();
+  bindLeadDetailEvents();
 }
 
 
 /* =========================================================
- * LEAD DETAIL EDIT EVENTS
+ * NORMAL EDITABLE FIELD
  * ========================================================= */
 
-function bindLeadDetailEditEvents() {
+function renderEditableField({
+  label,
+  field,
+  value,
+  type = "text",
+  options = null
+}) {
+
+  const editing =
+    CRM_STATE.editingField ===
+      field;
+
+
+  const currentValue =
+    Object.prototype
+      .hasOwnProperty
+      .call(
+        CRM_STATE.pendingUpdates,
+        field
+      )
+
+      ? CRM_STATE
+          .pendingUpdates[
+            field
+          ]
+
+      : value;
+
+
+  if (!editing) {
+
+    const display =
+      type === "datetime-local"
+
+        ? formatCrmDateTime(
+            currentValue
+          )
+
+        : currentValue;
+
+
+    return renderDisplayField(
+      label,
+      field,
+      display,
+      type === "url"
+    );
+  }
+
+
+  let control;
+
+
+  if (
+    Array.isArray(options)
+  ) {
+
+    control = `
+
+      <select
+        class="crm-inline-input"
+        data-edit-input
+        data-field="${escapeHtmlAttribute(
+          field
+        )}"
+      >
+
+        <option value="">
+          —
+        </option>
+
+        ${options
+          .map(
+            option => `
+
+              <option
+                value="${escapeHtmlAttribute(
+                  option.value
+                )}"
+                ${
+                  String(
+                    option.value
+                  ) ===
+                  String(
+                    currentValue || ""
+                  )
+                    ? "selected"
+                    : ""
+                }
+              >
+                ${escapeHtml(
+                  option.label
+                )}
+              </option>
+            `
+          )
+          .join("")}
+
+      </select>
+    `;
+
+  } else if (
+    type === "textarea"
+  ) {
+
+    control = `
+
+      <textarea
+        class="crm-inline-input crm-inline-textarea"
+        data-edit-input
+        data-field="${escapeHtmlAttribute(
+          field
+        )}"
+      >${escapeHtml(
+        currentValue || ""
+      )}</textarea>
+    `;
+
+  } else {
+
+    const inputValue =
+      type === "datetime-local"
+
+        ? formatDateTimeLocalValue(
+            currentValue
+          )
+
+        : currentValue || "";
+
+
+    control = `
+
+      <input
+        class="crm-inline-input"
+        type="${escapeHtmlAttribute(
+          type
+        )}"
+        value="${escapeHtmlAttribute(
+          inputValue
+        )}"
+        data-edit-input
+        data-field="${escapeHtmlAttribute(
+          field
+        )}"
+      />
+    `;
+  }
+
+
+  return `
+
+    <div class="detail-field detail-field-editing">
+
+      <span class="detail-label">
+        ${escapeHtml(label)}
+      </span>
+
+
+      <div class="detail-edit-wrap">
+
+        ${control}
+
+        <button
+          type="button"
+          class="field-edit-cancel"
+          data-cancel-edit
+          title="Cancel editing"
+        >
+          ×
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * DISPLAY FIELD + PENCIL
+ * ========================================================= */
+
+function renderDisplayField(
+  label,
+  field,
+  value,
+  asLink = false
+) {
+
+  const clean =
+    value === null ||
+    value === undefined ||
+    value === ""
+
+      ? "—"
+
+      : String(value);
+
+
+  let content =
+    escapeHtml(clean);
+
+
+  if (
+    asLink &&
+    clean !== "—"
+  ) {
+
+    content = `
+
+      <a
+        href="${escapeHtmlAttribute(
+          clean
+        )}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        ${escapeHtml(clean)}
+      </a>
+    `;
+  }
+
+
+  return `
+
+    <div class="detail-field">
+
+      <span class="detail-label">
+        ${escapeHtml(label)}
+      </span>
+
+
+      <div class="detail-display-editable">
+
+        <div class="detail-value">
+          ${content}
+        </div>
+
+
+        <button
+          type="button"
+          class="field-edit-button"
+          data-edit-field="${escapeHtmlAttribute(
+            field
+          )}"
+          title="Edit"
+          aria-label="Edit ${escapeHtmlAttribute(
+            label
+          )}"
+        >
+          ✎
+        </button>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * READ-ONLY
+ * ========================================================= */
+
+function renderReadOnlyField(
+  label,
+  value,
+  asLink = false
+) {
+
+  const clean =
+    value === null ||
+    value === undefined ||
+    value === ""
+
+      ? "—"
+
+      : String(value);
+
+
+  let content =
+    escapeHtml(clean);
+
+
+  if (
+    asLink &&
+    clean !== "—"
+  ) {
+
+    content = `
+
+      <a
+        href="${escapeHtmlAttribute(
+          clean
+        )}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        ${escapeHtml(clean)}
+      </a>
+    `;
+  }
+
+
+  return `
+
+    <div class="detail-field">
+
+      <span class="detail-label">
+        ${escapeHtml(label)}
+      </span>
+
+      <div class="detail-value">
+        ${content}
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * RESPONSIBLE
+ * ========================================================= */
+
+function renderResponsibleField(
+  lead
+) {
+
+  const users =
+    CRM_STATE.meta
+      ?.responsibleUsers ||
+    [];
+
+
+  const options =
+    users.map(
+      user => ({
+        value:
+          user.email,
+
+        label:
+          user.name ||
+          user.email
+      })
+    );
+
+
+  return renderEditableField({
+
+    label:
+      "Responsible",
+
+    field:
+      "Responsible_email",
+
+    value:
+      lead.Responsible_email,
+
+    options:
+      options
+  });
+}
+
+
+/* =========================================================
+ * NEXT ACTION TYPE
+ * ========================================================= */
+
+function renderNextActionTypeField(
+  lead
+) {
+
+  const values =
+    CRM_STATE.meta
+      ?.nextActionTypes ||
+    [];
+
+
+  const options =
+    values.map(
+      value => ({
+        value:
+          value,
+
+        label:
+          formatCrmLabel(
+            value
+          )
+      })
+    );
+
+
+  return renderEditableField({
+
+    label:
+      "Type",
+
+    field:
+      "Next_action_type",
+
+    value:
+      lead.Next_action_type,
+
+    options:
+      options
+  });
+}
+
+
+/* =========================================================
+ * OPTIONAL TEXT SECTIONS
+ * ========================================================= */
+
+function renderOptionalEditableText(
+  heading,
+  field,
+  value
+) {
+
+  if (
+    value === undefined
+  ) {
+
+    return "";
+  }
+
+
+  return `
+
+    <div class="detail-section">
+
+      <h3>
+        ${escapeHtml(heading)}
+      </h3>
+
+      ${renderEditableField({
+        label: heading,
+        field: field,
+        value: value,
+        type: "textarea"
+      })}
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * SAVE BAR
+ * ========================================================= */
+
+function renderSaveBar() {
+
+  const count =
+    Object.keys(
+      CRM_STATE.pendingUpdates
+    ).length;
+
+
+  return `
+
+    <div class="lead-save-bar">
+
+      <span class="lead-save-status">
+
+        ${
+          count === 0
+
+            ? "No unsaved changes"
+
+            : `${count} unsaved change${
+                count === 1
+                  ? ""
+                  : "s"
+              }`
+        }
+
+      </span>
+
+
+      <button
+        type="button"
+        class="save-lead-button"
+        data-save-lead
+        ${count === 0
+          ? "disabled"
+          : ""}
+      >
+        Save changes
+      </button>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * MILESTONES
+ * ========================================================= */
+
+function renderMilestoneButton(
+  lead,
+  milestone,
+  label,
+  timestampField,
+  checkboxField = null
+) {
+
+  const field =
+    checkboxField ||
+    milestone;
+
+
+  const active =
+    normalizeCrmBoolean(
+      lead[field]
+    );
+
+
+  const timestamp =
+    lead[
+      timestampField
+    ];
+
+
+  return `
+
+    <button
+      type="button"
+      class="milestone-button ${
+        active
+          ? "completed"
+          : ""
+      }"
+      data-milestone="${escapeHtmlAttribute(
+        milestone
+      )}"
+    >
+
+      <span class="milestone-label">
+        ${escapeHtml(label)}
+      </span>
+
+      ${
+        active &&
+        timestamp
+
+          ? `
+
+            <span class="milestone-time">
+              ${escapeHtml(
+                formatCrmDateTime(
+                  timestamp
+                )
+              )}
+            </span>
+          `
+
+          : ""
+      }
+
+    </button>
+  `;
+}
+
+
+/* =========================================================
+ * OUTCOME
+ * ========================================================= */
+
+function renderOutcomeButton(
+  outcome,
+  label,
+  activeValue,
+  timestamp
+) {
+
+  const active =
+    normalizeCrmBoolean(
+      activeValue
+    );
+
+
+  return `
+
+    <button
+      type="button"
+      class="outcome-button outcome-${outcome.toLowerCase()} ${
+        active
+          ? "active"
+          : ""
+      }"
+      data-outcome="${outcome}"
+    >
+
+      <span>
+        ${escapeHtml(label)}
+      </span>
+
+      ${
+        active &&
+        timestamp
+
+          ? `
+
+            <small>
+              ${escapeHtml(
+                formatCrmDateTime(
+                  timestamp
+                )
+              )}
+            </small>
+          `
+
+          : ""
+      }
+
+    </button>
+  `;
+}
+
+
+/* =========================================================
+ * DETAIL EVENTS
+ * ========================================================= */
+
+function bindLeadDetailEvents() {
 
   const panel =
     document.getElementById(
@@ -1081,62 +1674,148 @@ function bindLeadDetailEditEvents() {
   }
 
 
-  const editableFields =
-    panel.querySelectorAll(
-      "[data-crm-field]"
+  panel
+    .querySelectorAll(
+      "[data-edit-field]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            CRM_STATE.editingField =
+              button.dataset.editField;
+
+
+            renderLeadDetail(
+              CRM_STATE.selectedLead
+            );
+          }
+        );
+      }
     );
 
 
-  editableFields.forEach(
-    element => {
+  panel
+    .querySelectorAll(
+      "[data-cancel-edit]"
+    )
+    .forEach(
+      button => {
 
-      const eventName =
-        element.type ===
-          "checkbox"
+        button.addEventListener(
+          "click",
+          () => {
 
-          ? "change"
-
-          : "input";
-
-
-      element.addEventListener(
-        eventName,
-        handleLeadFieldChange
-      );
-    }
-  );
+            CRM_STATE.editingField =
+              null;
 
 
-  const saveButton =
-    document.getElementById(
-      "saveLeadButton"
+            renderLeadDetail(
+              CRM_STATE.selectedLead
+            );
+          }
+        );
+      }
     );
 
 
-  if (saveButton) {
+  panel
+    .querySelectorAll(
+      "[data-edit-input]"
+    )
+    .forEach(
+      input => {
 
-    saveButton.addEventListener(
+        const eventName =
+          input.tagName === "SELECT"
+
+            ? "change"
+
+            : "input";
+
+
+        input.addEventListener(
+          eventName,
+          handleEditInputChange
+        );
+      }
+    );
+
+
+  panel
+    .querySelector(
+      "[data-save-lead]"
+    )
+    ?.addEventListener(
       "click",
       saveSelectedLeadChanges
     );
-  }
+
+
+  panel
+    .querySelectorAll(
+      "[data-milestone]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "dblclick",
+          async () => {
+
+            await toggleSelectedMilestone(
+              button.dataset.milestone
+            );
+          }
+        );
+      }
+    );
+
+
+  panel
+    .querySelectorAll(
+      "[data-outcome]"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "dblclick",
+          async () => {
+
+            await setSelectedOutcome(
+              button.dataset.outcome
+            );
+          }
+        );
+      }
+    );
+
+
+  panel
+    .querySelector(
+      "[data-archive-toggle]"
+    )
+    ?.addEventListener(
+      "click",
+      toggleArchive
+    );
 }
 
 
 /* =========================================================
- * TRACK FIELD CHANGES
+ * EDIT CHANGE
  * ========================================================= */
 
-function handleLeadFieldChange(
+function handleEditInputChange(
   event
 ) {
 
-  const element =
-    event.target;
-
-
   const field =
-    element.dataset.crmField;
+    event.target.dataset.field;
 
 
   if (!field) {
@@ -1144,49 +1823,25 @@ function handleLeadFieldChange(
   }
 
 
-  let value;
+  const newValue =
+    event.target.value;
+
+
+  const original =
+    CRM_STATE.selectedLead[
+      field
+    ];
 
 
   if (
-    element.type ===
-      "checkbox"
-  ) {
-
-    value =
-      element.checked;
-
-  } else {
-
-    value =
-      element.value;
-  }
-
-
-  const originalValue =
-    CRM_STATE.selectedLead
-      ? CRM_STATE.selectedLead[
-          field
-        ]
-      : "";
-
-
-  const comparableOriginal =
     normalizeComparableCrmValue(
       field,
-      originalValue
-    );
-
-
-  const comparableNew =
+      newValue
+    ) ===
     normalizeComparableCrmValue(
       field,
-      value
-    );
-
-
-  if (
-    comparableOriginal ===
-      comparableNew
+      original
+    )
   ) {
 
     delete CRM_STATE
@@ -1200,27 +1855,19 @@ function handleLeadFieldChange(
       .pendingUpdates[
         field
       ] =
-        value;
+        newValue;
   }
 
 
-  updateLeadSaveState();
+  updateSaveBarOnly();
 }
 
 
 /* =========================================================
- * SAVE LEAD
+ * SAVE NORMAL FIELDS
  * ========================================================= */
 
 async function saveSelectedLeadChanges() {
-
-  if (
-    !CRM_STATE.selectedLeadId
-  ) {
-
-    return;
-  }
-
 
   const updates =
     {
@@ -1230,43 +1877,17 @@ async function saveSelectedLeadChanges() {
 
 
   if (
-    Object.keys(
-      updates
-    ).length === 0
+    !CRM_STATE.selectedLeadId ||
+    !Object.keys(updates).length
   ) {
 
     return;
   }
 
 
-  const saveButton =
-    document.getElementById(
-      "saveLeadButton"
-    );
-
-
-  const saveStatus =
-    document.getElementById(
-      "leadSaveStatus"
-    );
-
-
-  if (saveButton) {
-
-    saveButton.disabled =
-      true;
-
-
-    saveButton.textContent =
-      "Saving...";
-  }
-
-
-  if (saveStatus) {
-
-    saveStatus.textContent =
-      "Saving changes...";
-  }
+  setWorkflowBusy(
+    true
+  );
 
 
   try {
@@ -1278,24 +1899,17 @@ async function saveSelectedLeadChanges() {
       );
 
 
-    CRM_STATE.selectedLead =
-      updatedLead;
+    acceptUpdatedLead(
+      updatedLead
+    );
 
 
     CRM_STATE.pendingUpdates =
       {};
 
 
-    /*
-     * Update the lightweight lead list
-     * without requiring a complete refresh.
-     */
-    updateLeadInState(
-      updatedLead
-    );
-
-
-    applyLeadFilters();
+    CRM_STATE.editingField =
+      null;
 
 
     renderLeadDetail(
@@ -1303,62 +1917,228 @@ async function saveSelectedLeadChanges() {
     );
 
 
-    const refreshedStatus =
-      document.getElementById(
-        "leadSaveStatus"
-      );
-
-
-    if (refreshedStatus) {
-
-      refreshedStatus.textContent =
-        "Changes saved";
-    }
-
-
   } catch (error) {
 
-    console.error(
-      error
+    console.error(error);
+
+
+    showCrmStatus(
+      "Could not save lead: " +
+      error.message,
+      "error"
     );
 
 
-    if (saveButton) {
+  } finally {
 
-      saveButton.disabled =
-        false;
-
-
-      saveButton.textContent =
-        "Save changes";
-    }
-
-
-    if (saveStatus) {
-
-      saveStatus.textContent =
-        "Could not save: " +
-        error.message;
-    }
+    setWorkflowBusy(
+      false
+    );
   }
 }
 
 
 /* =========================================================
- * UPDATE LEAD IN LOCAL STATE
+ * MILESTONE ACTION
  * ========================================================= */
 
-function updateLeadInState(
-  updatedLead
+async function toggleSelectedMilestone(
+  milestone
 ) {
 
   if (
-    !updatedLead ||
-    !updatedLead.Lead_id
+    CRM_STATE.workflowBusy ||
+    !CRM_STATE.selectedLeadId
   ) {
 
     return;
   }
+
+
+  setWorkflowBusy(
+    true
+  );
+
+
+  try {
+
+    const updatedLead =
+      await toggleCrmMilestone(
+        CRM_STATE.selectedLeadId,
+        milestone
+      );
+
+
+    acceptUpdatedLead(
+      updatedLead
+    );
+
+
+    renderLeadDetail(
+      updatedLead
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    showCrmStatus(
+      "Could not update milestone: " +
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    setWorkflowBusy(
+      false
+    );
+  }
+}
+
+
+/* =========================================================
+ * OUTCOME ACTION
+ * ========================================================= */
+
+async function setSelectedOutcome(
+  outcome
+) {
+
+  if (
+    CRM_STATE.workflowBusy ||
+    !CRM_STATE.selectedLeadId
+  ) {
+
+    return;
+  }
+
+
+  setWorkflowBusy(
+    true
+  );
+
+
+  try {
+
+    const updatedLead =
+      await setCrmOutcome(
+        CRM_STATE.selectedLeadId,
+        outcome
+      );
+
+
+    acceptUpdatedLead(
+      updatedLead
+    );
+
+
+    renderLeadDetail(
+      updatedLead
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    showCrmStatus(
+      "Could not set outcome: " +
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    setWorkflowBusy(
+      false
+    );
+  }
+}
+
+
+/* =========================================================
+ * ARCHIVE
+ * ========================================================= */
+
+async function toggleArchive() {
+
+  if (
+    CRM_STATE.workflowBusy ||
+    !CRM_STATE.selectedLead
+  ) {
+
+    return;
+  }
+
+
+  setWorkflowBusy(
+    true
+  );
+
+
+  try {
+
+    const updatedLead =
+      await updateCrmLead(
+        CRM_STATE.selectedLeadId,
+        {
+          Is_archived:
+            !normalizeCrmBoolean(
+              CRM_STATE
+                .selectedLead
+                .Is_archived
+            )
+        }
+      );
+
+
+    acceptUpdatedLead(
+      updatedLead
+    );
+
+
+    renderLeadDetail(
+      updatedLead
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    showCrmStatus(
+      "Could not update archive status: " +
+      error.message,
+      "error"
+    );
+
+
+  } finally {
+
+    setWorkflowBusy(
+      false
+    );
+  }
+}
+
+
+/* =========================================================
+ * ACCEPT UPDATED LEAD
+ * ========================================================= */
+
+function acceptUpdatedLead(
+  updatedLead
+) {
+
+  CRM_STATE.selectedLead =
+    updatedLead;
 
 
   const index =
@@ -1371,46 +2151,61 @@ function updateLeadInState(
 
 
   if (
-    index === -1
+    index !== -1
   ) {
 
-    return;
+    CRM_STATE.leads[index] = {
+
+      ...CRM_STATE.leads[index],
+
+      ...updatedLead
+    };
   }
 
 
-  /*
-   * Merge complete lead data into
-   * the lightweight list entry.
-   */
-  CRM_STATE.leads[
-    index
-  ] = {
-
-    ...CRM_STATE.leads[
-      index
-    ],
-
-    ...updatedLead
-  };
+  applyLeadFilters();
 }
 
 
 /* =========================================================
- * SAVE STATE
+ * BUSY
  * ========================================================= */
 
-function updateLeadSaveState() {
+function setWorkflowBusy(
+  busy
+) {
 
-  const saveButton =
-    document.getElementById(
-      "saveLeadButton"
+  CRM_STATE.workflowBusy =
+    busy;
+
+
+  document
+    .getElementById(
+      "leadDetail"
+    )
+    ?.classList
+    .toggle(
+      "workflow-busy",
+      busy
+    );
+}
+
+
+/* =========================================================
+ * SAVE BAR UPDATE
+ * ========================================================= */
+
+function updateSaveBarOnly() {
+
+  const bar =
+    document.querySelector(
+      ".lead-save-bar"
     );
 
 
-  const saveStatus =
-    document.getElementById(
-      "leadSaveStatus"
-    );
+  if (!bar) {
+    return;
+  }
 
 
   const count =
@@ -1419,17 +2214,21 @@ function updateLeadSaveState() {
     ).length;
 
 
-  if (saveButton) {
+  const status =
+    bar.querySelector(
+      ".lead-save-status"
+    );
 
-    saveButton.disabled =
-      count === 0;
-  }
+
+  const button =
+    bar.querySelector(
+      ".save-lead-button"
+    );
 
 
-  if (saveStatus) {
+  if (status) {
 
-    saveStatus.textContent =
-
+    status.textContent =
       count === 0
 
         ? "No unsaved changes"
@@ -1440,294 +2239,13 @@ function updateLeadSaveState() {
               : "s"
           }`;
   }
-}
 
 
-/* =========================================================
- * EDITABLE FIELD RENDERING
- * ========================================================= */
+  if (button) {
 
-function renderEditableDetailField(
-  label,
-  field,
-  value,
-  type = "text"
-) {
-
-  if (
-    CRM_PROTECTED_FIELDS.includes(
-      field
-    )
-  ) {
-
-    return renderDetailField(
-      label,
-      value
-    );
+    button.disabled =
+      count === 0;
   }
-
-
-  const cleanValue =
-    value === null ||
-    value === undefined
-
-      ? ""
-
-      : String(
-          value
-        );
-
-
-  if (
-    type ===
-      "textarea"
-  ) {
-
-    return `
-
-      <div class="detail-field editable-detail-field">
-
-        <label
-          class="detail-label"
-          for="crm-field-${escapeHtmlAttribute(
-            field
-          )}"
-        >
-          ${escapeHtml(
-            label
-          )}
-        </label>
-
-
-        <textarea
-          id="crm-field-${escapeHtmlAttribute(
-            field
-          )}"
-          class="crm-detail-input crm-detail-textarea"
-          data-crm-field="${escapeHtmlAttribute(
-            field
-          )}"
-        >${escapeHtml(
-          cleanValue
-        )}</textarea>
-
-      </div>
-    `;
-  }
-
-
-  let inputValue =
-    cleanValue;
-
-
-  if (
-    type ===
-      "datetime-local"
-  ) {
-
-    inputValue =
-      formatDateTimeLocalValue(
-        cleanValue
-      );
-  }
-
-
-  return `
-
-    <div class="detail-field editable-detail-field">
-
-      <label
-        class="detail-label"
-        for="crm-field-${escapeHtmlAttribute(
-          field
-        )}"
-      >
-        ${escapeHtml(
-          label
-        )}
-      </label>
-
-
-      <input
-        id="crm-field-${escapeHtmlAttribute(
-          field
-        )}"
-        class="crm-detail-input"
-        type="${escapeHtmlAttribute(
-          type
-        )}"
-        value="${escapeHtmlAttribute(
-          inputValue
-        )}"
-        data-crm-field="${escapeHtmlAttribute(
-          field
-        )}"
-      />
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
- * EDITABLE CHECKBOX
- * ========================================================= */
-
-function renderEditableCheckboxField(
-  label,
-  field,
-  value
-) {
-
-  if (
-    CRM_PROTECTED_FIELDS.includes(
-      field
-    )
-  ) {
-
-    return renderDetailField(
-      label,
-      value
-        ? "Yes"
-        : "No"
-    );
-  }
-
-
-  const checked =
-    normalizeCrmBoolean(
-      value
-    );
-
-
-  return `
-
-    <div class="detail-field editable-detail-field">
-
-      <span class="detail-label">
-
-        ${escapeHtml(
-          label
-        )}
-
-      </span>
-
-
-      <label class="crm-checkbox-control">
-
-        <input
-          type="checkbox"
-          data-crm-field="${escapeHtmlAttribute(
-            field
-          )}"
-          ${checked
-            ? "checked"
-            : ""}
-        />
-
-        <span>
-          ${checked
-            ? "Completed"
-            : "Not completed"}
-        </span>
-
-      </label>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
- * READ-ONLY FIELD
- * ========================================================= */
-
-function renderDetailField(
-  label,
-  value,
-  asLink = false
-) {
-
-  const cleanValue =
-    value === null ||
-    value === undefined ||
-    value === ""
-
-      ? "—"
-
-      : String(
-          value
-        );
-
-
-  let renderedValue =
-    escapeHtml(
-      cleanValue
-    );
-
-
-  if (
-    asLink &&
-    cleanValue !== "—"
-  ) {
-
-    renderedValue = `
-
-      <a
-        href="${escapeHtmlAttribute(
-          cleanValue
-        )}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-
-        ${escapeHtml(
-          cleanValue
-        )}
-
-      </a>
-    `;
-  }
-
-
-  return `
-
-    <div class="detail-field">
-
-      <span class="detail-label">
-
-        ${escapeHtml(
-          label
-        )}
-
-      </span>
-
-
-      <div class="detail-value">
-
-        ${renderedValue}
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
- * READ-ONLY LINK
- * ========================================================= */
-
-function renderReadOnlyLinkField(
-  label,
-  value
-) {
-
-  return renderDetailField(
-    label,
-    value,
-    true
-  );
 }
 
 
@@ -1750,20 +2268,11 @@ function renderTextBlock(
     <div class="detail-text-block">
 
       <span class="detail-label">
-
-        ${escapeHtml(
-          label
-        )}
-
+        ${escapeHtml(label)}
       </span>
 
-
       <p>
-
-        ${escapeHtml(
-          value
-        )}
-
+        ${escapeHtml(value)}
       </p>
 
     </div>
@@ -1796,9 +2305,7 @@ function renderEmptyLeadDetail() {
 
     <div class="detail-empty-state">
 
-      <h2>
-        Select a lead
-      </h2>
+      <h2>Select a lead</h2>
 
       <p>
         Click a row to load the complete CRM record.
@@ -1830,9 +2337,7 @@ function renderLeadDetailLoading() {
 
     <div class="detail-empty-state">
 
-      <h2>
-        Loading...
-      </h2>
+      <h2>Loading...</h2>
 
       <p>
         Retrieving lead information.
@@ -1871,9 +2376,7 @@ function renderLeadDetailError(
       </h2>
 
       <p>
-        ${escapeHtml(
-          message
-        )}
+        ${escapeHtml(message)}
       </p>
 
     </div>
@@ -1882,19 +2385,16 @@ function renderLeadDetailError(
 
 
 /* =========================================================
- * NEXT ACTION TABLE CELL
+ * TABLE HELPERS
  * ========================================================= */
 
 function renderNextAction(
   lead
 ) {
 
-  if (
-    !lead.Next_action_type
-  ) {
+  if (!lead.Next_action_type) {
 
     return `
-
       <span class="muted-text">
         —
       </span>
@@ -1907,34 +2407,25 @@ function renderNextAction(
     <div class="next-action-cell">
 
       <strong>
-
         ${escapeHtml(
           formatCrmLabel(
             lead.Next_action_type
           )
         )}
-
       </strong>
 
-
       <span>
-
         ${escapeHtml(
           formatCrmDateTime(
             lead.Next_action_at
           )
         )}
-
       </span>
 
     </div>
   `;
 }
 
-
-/* =========================================================
- * BADGES
- * ========================================================= */
 
 function renderCrmBadge(
   value,
@@ -1944,7 +2435,6 @@ function renderCrmBadge(
   if (!value) {
 
     return `
-
       <span class="badge badge-neutral">
         —
       </span>
@@ -1953,9 +2443,7 @@ function renderCrmBadge(
 
 
   const normalized =
-    String(
-      value
-    )
+    String(value)
       .trim()
       .toLowerCase()
       .replace(
@@ -1973,20 +2461,16 @@ function renderCrmBadge(
         normalized
       )}"
     >
-
       ${escapeHtml(
-        formatCrmLabel(
-          value
-        )
+        formatCrmLabel(value)
       )}
-
     </span>
   `;
 }
 
 
 /* =========================================================
- * STATUS / COUNT
+ * STATUS
  * ========================================================= */
 
 function updateLeadCount(
@@ -1999,17 +2483,15 @@ function updateLeadCount(
     );
 
 
-  if (!element) {
-    return;
+  if (element) {
+
+    element.textContent =
+      `${count} lead${
+        count === 1
+          ? ""
+          : "s"
+      }`;
   }
-
-
-  element.textContent =
-    `${count} lead${
-      count === 1
-        ? ""
-        : "s"
-    }`;
 }
 
 
@@ -2065,7 +2547,7 @@ function hideCrmStatus() {
 
 
 /* =========================================================
- * FORMAT HELPERS
+ * FORMAT
  * ========================================================= */
 
 function formatCrmLabel(
@@ -2077,9 +2559,7 @@ function formatCrmLabel(
   }
 
 
-  return String(
-    value
-  )
+  return String(value)
     .replace(
       /_/g,
       " "
@@ -2102,9 +2582,7 @@ function formatCrmDateTime(
 
 
   const date =
-    new Date(
-      value
-    );
+    new Date(value);
 
 
   if (
@@ -2113,34 +2591,20 @@ function formatCrmDateTime(
     )
   ) {
 
-    return String(
-      value
-    );
+    return String(value);
   }
 
 
   return new Intl.DateTimeFormat(
     "en-GB",
     {
-
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "2-digit",
-
-      hour:
-        "2-digit",
-
-      minute:
-        "2-digit"
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
     }
-  ).format(
-    date
-  );
+  ).format(date);
 }
 
 
@@ -2154,9 +2618,7 @@ function formatDateTimeLocalValue(
 
 
   const date =
-    new Date(
-      value
-    );
+    new Date(value);
 
 
   if (
@@ -2170,35 +2632,29 @@ function formatDateTimeLocalValue(
 
 
   const pad =
-    number =>
-      String(
-        number
-      ).padStart(
-        2,
-        "0"
-      );
+    value =>
+      String(value)
+        .padStart(
+          2,
+          "0"
+        );
 
 
   return (
-
     date.getFullYear() +
     "-" +
-
     pad(
       date.getMonth() + 1
     ) +
     "-" +
-
     pad(
       date.getDate()
     ) +
     "T" +
-
     pad(
       date.getHours()
     ) +
     ":" +
-
     pad(
       date.getMinutes()
     )
@@ -2212,19 +2668,13 @@ function combineLocation(
 ) {
 
   return [
-
     location,
     country
-
   ]
     .filter(Boolean)
     .join(", ");
 }
 
-
-/* =========================================================
- * COMPARISON HELPERS
- * ========================================================= */
 
 function normalizeComparableCrmValue(
   field,
@@ -2241,17 +2691,6 @@ function normalizeComparableCrmValue(
 
 
   if (
-    typeof value ===
-      "boolean"
-  ) {
-
-    return value
-      ? "true"
-      : "false";
-  }
-
-
-  if (
     field ===
       "Next_action_at"
   ) {
@@ -2262,9 +2701,8 @@ function normalizeComparableCrmValue(
   }
 
 
-  return String(
-    value
-  ).trim();
+  return String(value)
+    .trim();
 }
 
 
@@ -2272,33 +2710,27 @@ function normalizeCrmBoolean(
   value
 ) {
 
-  if (
-    value === true
-  ) {
-
+  if (value === true) {
     return true;
   }
 
 
-  const text =
+  return [
+    "TRUE",
+    "YES",
+    "1"
+  ].includes(
     String(
       value || ""
     )
       .trim()
-      .toUpperCase();
-
-
-  return (
-
-    text === "TRUE" ||
-    text === "YES" ||
-    text === "1"
+      .toUpperCase()
   );
 }
 
 
 /* =========================================================
- * SECURITY / ESCAPING
+ * ESCAPING
  * ========================================================= */
 
 function escapeHtml(
@@ -2335,7 +2767,5 @@ function escapeHtmlAttribute(
   value
 ) {
 
-  return escapeHtml(
-    value
-  );
+  return escapeHtml(value);
 }
