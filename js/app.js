@@ -3,12 +3,66 @@
  * Main frontend application logic
  */
 
+
+/* =========================================================
+ * CRM STATE
+ * ========================================================= */
+
 let CRM_STATE = {
+
   leads: [],
+
   filteredLeads: [],
-  selectedLeadId: null,
-  selectedLead: null
+
+  selectedLeadId:
+    null,
+
+  selectedLead:
+    null,
+
+  pendingUpdates:
+    {}
 };
+
+
+/* =========================================================
+ * PROTECTED FIELDS
+ *
+ * These fields are visible where relevant,
+ * but cannot be edited from the CRM.
+ * ========================================================= */
+
+const CRM_PROTECTED_FIELDS = [
+
+  "Lead_id",
+
+  "Company_name",
+  "Clutch_url",
+  "Clutch_intro",
+  "Manpower",
+  "Project_size",
+  "Location",
+  "Country",
+  "Quick_evaluation",
+
+  "Company_lead",
+  "Founder_lead",
+  "FL_date",
+
+  "Research_status",
+  "Data_confidence",
+  "ICP_fit_level",
+
+  "T_issue",
+  "O_issue",
+  "M_issue",
+  "S_issue",
+
+  "Outreach_angle",
+  "Research_notes",
+
+  "Raw_json"
+];
 
 
 /* =========================================================
@@ -18,6 +72,7 @@ let CRM_STATE = {
 document.addEventListener(
   "DOMContentLoaded",
   () => {
+
     initializeCrmApp();
   }
 );
@@ -41,36 +96,45 @@ async function loadCrmLeads() {
     "Loading leads..."
   );
 
+
   try {
 
     const leads =
       await getCrmLeads();
 
+
     CRM_STATE.leads =
       leads;
 
+
     CRM_STATE.filteredLeads =
       leads;
+
 
     populatePipelineStageFilter(
       leads
     );
 
+
     renderLeadTable(
       leads
     );
+
 
     updateLeadCount(
       leads.length
     );
 
+
     hideCrmStatus();
+
 
   } catch (error) {
 
     console.error(
       error
     );
+
 
     showCrmStatus(
       "Could not load CRM leads: " +
@@ -92,15 +156,18 @@ function bindCrmUiEvents() {
       "searchInput"
     );
 
+
   const stageFilter =
     document.getElementById(
       "stageFilter"
     );
 
+
   const icpFilter =
     document.getElementById(
       "icpFilter"
     );
+
 
   const refreshButton =
     document.getElementById(
@@ -144,10 +211,17 @@ function bindCrmUiEvents() {
         CRM_STATE.selectedLeadId =
           null;
 
+
         CRM_STATE.selectedLead =
           null;
 
+
+        CRM_STATE.pendingUpdates =
+          {};
+
+
         renderEmptyLeadDetail();
+
 
         await loadCrmLeads();
       }
@@ -204,11 +278,13 @@ function applyLeadFilters() {
 
         const searchable =
           [
+
             lead.Company_name,
             lead.Founder_1_name,
             lead.Lead_id,
             lead.Website,
             lead.Responsible_email
+
           ]
             .join(" ")
             .toLowerCase();
@@ -240,6 +316,7 @@ function applyLeadFilters() {
 
 
         return (
+
           matchesSearch &&
           matchesStage &&
           matchesIcp
@@ -251,9 +328,11 @@ function applyLeadFilters() {
   CRM_STATE.filteredLeads =
     filtered;
 
+
   renderLeadTable(
     filtered
   );
+
 
   updateLeadCount(
     filtered.length
@@ -273,6 +352,7 @@ function populatePipelineStageFilter(
     document.getElementById(
       "stageFilter"
     );
+
 
   if (!select) {
     return;
@@ -311,13 +391,16 @@ function populatePipelineStageFilter(
           "option"
         );
 
+
       option.value =
         stage;
+
 
       option.textContent =
         formatCrmLabel(
           stage
         );
+
 
       select.appendChild(
         option
@@ -351,6 +434,7 @@ function renderLeadTable(
       "leadTableBody"
     );
 
+
   if (!tbody) {
     return;
   }
@@ -372,15 +456,22 @@ function renderLeadTable(
         "tr"
       );
 
+
     row.innerHTML = `
-      <td colspan="6" class="empty-table-cell">
+
+      <td
+        colspan="6"
+        class="empty-table-cell"
+      >
         No leads match the current filters.
       </td>
     `;
 
+
     tbody.appendChild(
       row
     );
+
 
     return;
   }
@@ -417,7 +508,9 @@ function renderLeadTable(
       row.innerHTML = `
 
         <td>
+
           <div class="company-cell">
+
             <strong>
               ${escapeHtml(
                 lead.Company_name ||
@@ -430,46 +523,58 @@ function renderLeadTable(
                 lead.Lead_id || ""
               )}
             </span>
+
           </div>
+
         </td>
 
 
         <td>
+
           ${escapeHtml(
             lead.Founder_1_name ||
             "—"
           )}
+
         </td>
 
 
         <td>
+
           ${renderCrmBadge(
             lead.ICP_fit_level,
             "icp"
           )}
+
         </td>
 
 
         <td>
+
           ${renderCrmBadge(
             lead.Pipeline_stage,
             "stage"
           )}
+
         </td>
 
 
         <td>
+
           ${renderNextAction(
             lead
           )}
+
         </td>
 
 
         <td>
+
           ${escapeHtml(
             lead.Responsible_email ||
             "—"
           )}
+
         </td>
       `;
 
@@ -477,6 +582,7 @@ function renderLeadTable(
       row.addEventListener(
         "click",
         () => {
+
           selectCrmLead(
             lead.Lead_id
           );
@@ -509,6 +615,10 @@ async function selectCrmLead(
     leadId;
 
 
+  CRM_STATE.pendingUpdates =
+    {};
+
+
   renderLeadTable(
     CRM_STATE.filteredLeads
   );
@@ -532,6 +642,7 @@ async function selectCrmLead(
     renderLeadDetail(
       lead
     );
+
 
   } catch (error) {
 
@@ -560,6 +671,7 @@ function renderLeadDetail(
       "leadDetail"
     );
 
+
   if (!panel) {
     return;
   }
@@ -575,45 +687,85 @@ function renderLeadDetail(
     <div class="detail-header">
 
       <div>
+
         <span class="detail-eyebrow">
+
           ${escapeHtml(
             lead.Lead_id || ""
           )}
+
         </span>
 
+
         <h2>
+
           ${escapeHtml(
             lead.Company_name ||
             "Unnamed company"
           )}
+
         </h2>
+
       </div>
 
+
       <div class="detail-stage">
+
         ${renderCrmBadge(
           lead.Pipeline_stage,
           "stage"
         )}
+
       </div>
+
+    </div>
+
+
+    <div
+      id="leadSaveBar"
+      class="lead-save-bar"
+    >
+
+      <span
+        id="leadSaveStatus"
+        class="lead-save-status"
+      >
+        No unsaved changes
+      </span>
+
+
+      <button
+        type="button"
+        id="saveLeadButton"
+        class="save-lead-button"
+        disabled
+      >
+        Save changes
+      </button>
 
     </div>
 
 
     <div class="detail-section">
 
-      <h3>Company</h3>
+      <h3>
+        Company
+      </h3>
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
+        "Website",
         "Website",
         lead.Website,
-        true
+        "url"
       )}
 
-      ${renderDetailField(
+
+      ${renderReadOnlyLinkField(
         "Clutch",
-        lead.Clutch_url,
-        true
+        lead.Clutch_url
       )}
+
 
       ${renderDetailField(
         "Location",
@@ -623,10 +775,12 @@ function renderLeadDetail(
         )
       )}
 
+
       ${renderDetailField(
         "Manpower",
         lead.Manpower
       )}
+
 
       ${renderDetailField(
         "Project size",
@@ -638,22 +792,31 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>Founder</h3>
+      <h3>
+        Founder
+      </h3>
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
         "Name",
+        "Founder_1_name",
         lead.Founder_1_name
       )}
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
         "LinkedIn",
+        "Founder_1_LinkedIn",
         lead.Founder_1_LinkedIn,
-        true
+        "url"
       )}
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
         "Email",
-        lead.Founder_1_email
+        "Founder_1_email",
+        lead.Founder_1_email,
+        "email"
       )}
 
     </div>
@@ -661,26 +824,28 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>Qualification</h3>
+      <h3>
+        Qualification
+      </h3>
+
 
       ${renderDetailField(
         "ICP fit",
         lead.ICP_fit_level
       )}
 
-      ${renderDetailField(
-        "Data confidence",
-        lead.Data_confidence
-      )}
 
       ${renderDetailField(
         "Research status",
         lead.Research_status
       )}
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
         "Responsible",
-        lead.Responsible_email
+        "Responsible_email",
+        lead.Responsible_email,
+        "email"
       )}
 
     </div>
@@ -688,18 +853,47 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>Next action</h3>
+      <h3>
+        Pipeline
+      </h3>
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
+        "Pipeline stage",
+        "Pipeline_stage",
+        lead.Pipeline_stage
+      )}
+
+
+      ${renderEditableDetailField(
+        "Conclusion",
+        "Conclusion",
+        lead.Conclusion,
+        "textarea"
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>
+        Next action
+      </h3>
+
+
+      ${renderEditableDetailField(
         "Type",
+        "Next_action_type",
         lead.Next_action_type
       )}
 
-      ${renderDetailField(
+
+      ${renderEditableDetailField(
         "Due",
-        formatCrmDateTime(
-          lead.Next_action_at
-        )
+        "Next_action_at",
+        lead.Next_action_at,
+        "datetime-local"
       )}
 
     </div>
@@ -707,27 +901,139 @@ function renderLeadDetail(
 
     <div class="detail-section">
 
-      <h3>Research notes</h3>
+      <h3>
+        Contact progress
+      </h3>
+
+
+      ${renderEditableCheckboxField(
+        "Connection request",
+        "CR",
+        lead.CR
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Connection accepted",
+        "CA",
+        lead.CA
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Message sent",
+        "MS",
+        lead.MS
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Response received",
+        "RT",
+        lead.RT
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>
+        Deal progress
+      </h3>
+
+
+      ${renderEditableCheckboxField(
+        "Review Call Offered",
+        "Review Call Offered",
+        lead["Review Call Offered"]
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Review Call Booked",
+        "Review Call Booked",
+        lead["Review Call Booked"]
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "GS Sent",
+        "GS Sent",
+        lead["GS Sent"]
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "GS Completed",
+        "GS Completed",
+        lead["GS Completed"]
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Review Call Done",
+        "Review Call Done",
+        lead["Review Call Done"]
+      )}
+
+
+      ${renderEditableCheckboxField(
+        "Proposal Sent",
+        "Proposal Sent",
+        lead["Proposal Sent"]
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>
+        Response
+      </h3>
+
+
+      ${renderEditableDetailField(
+        "Response content",
+        "Response content",
+        lead["Response content"],
+        "textarea"
+      )}
+
+    </div>
+
+
+    <div class="detail-section">
+
+      <h3>
+        Research notes
+      </h3>
+
 
       ${renderTextBlock(
         "Targeting",
         lead.T_issue
       )}
 
+
       ${renderTextBlock(
         "Offer",
         lead.O_issue
       )}
+
 
       ${renderTextBlock(
         "Marketing",
         lead.M_issue
       )}
 
+
       ${renderTextBlock(
         "Sales",
         lead.S_issue
       )}
+
 
       ${renderTextBlock(
         "Outreach angle",
@@ -735,107 +1041,528 @@ function renderLeadDetail(
       )}
 
     </div>
+
+
+    <div class="detail-section">
+
+      <h3>
+        Record
+      </h3>
+
+
+      ${renderEditableCheckboxField(
+        "Archived",
+        "Is_archived",
+        lead.Is_archived
+      )}
+
+    </div>
   `;
+
+
+  bindLeadDetailEditEvents();
 }
 
 
-function renderEmptyLeadDetail() {
+/* =========================================================
+ * LEAD DETAIL EDIT EVENTS
+ * ========================================================= */
+
+function bindLeadDetailEditEvents() {
 
   const panel =
     document.getElementById(
       "leadDetail"
     );
 
+
   if (!panel) {
     return;
   }
 
 
-  panel.className =
-    "detail-panel empty";
-
-
-  panel.innerHTML = `
-
-    <div class="detail-empty-state">
-
-      <h2>
-        Select a lead
-      </h2>
-
-      <p>
-        Click a row to load the complete CRM record.
-      </p>
-
-    </div>
-  `;
-}
-
-
-function renderLeadDetailLoading() {
-
-  const panel =
-    document.getElementById(
-      "leadDetail"
+  const editableFields =
+    panel.querySelectorAll(
+      "[data-crm-field]"
     );
 
-  if (!panel) {
-    return;
+
+  editableFields.forEach(
+    element => {
+
+      const eventName =
+        element.type ===
+          "checkbox"
+
+          ? "change"
+
+          : "input";
+
+
+      element.addEventListener(
+        eventName,
+        handleLeadFieldChange
+      );
+    }
+  );
+
+
+  const saveButton =
+    document.getElementById(
+      "saveLeadButton"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.addEventListener(
+      "click",
+      saveSelectedLeadChanges
+    );
   }
-
-
-  panel.className =
-    "detail-panel";
-
-
-  panel.innerHTML = `
-
-    <div class="detail-empty-state">
-
-      <h2>
-        Loading...
-      </h2>
-
-      <p>
-        Retrieving lead information.
-      </p>
-
-    </div>
-  `;
 }
 
 
-function renderLeadDetailError(
-  message
+/* =========================================================
+ * TRACK FIELD CHANGES
+ * ========================================================= */
+
+function handleLeadFieldChange(
+  event
 ) {
 
-  const panel =
-    document.getElementById(
-      "leadDetail"
-    );
+  const element =
+    event.target;
 
-  if (!panel) {
+
+  const field =
+    element.dataset.crmField;
+
+
+  if (!field) {
     return;
   }
 
 
-  panel.className =
-    "detail-panel";
+  let value;
 
 
-  panel.innerHTML = `
+  if (
+    element.type ===
+      "checkbox"
+  ) {
 
-    <div class="detail-empty-state">
+    value =
+      element.checked;
 
-      <h2>
-        Could not load lead
-      </h2>
+  } else {
 
-      <p>
+    value =
+      element.value;
+  }
+
+
+  const originalValue =
+    CRM_STATE.selectedLead
+      ? CRM_STATE.selectedLead[
+          field
+        ]
+      : "";
+
+
+  const comparableOriginal =
+    normalizeComparableCrmValue(
+      field,
+      originalValue
+    );
+
+
+  const comparableNew =
+    normalizeComparableCrmValue(
+      field,
+      value
+    );
+
+
+  if (
+    comparableOriginal ===
+      comparableNew
+  ) {
+
+    delete CRM_STATE
+      .pendingUpdates[
+        field
+      ];
+
+  } else {
+
+    CRM_STATE
+      .pendingUpdates[
+        field
+      ] =
+        value;
+  }
+
+
+  updateLeadSaveState();
+}
+
+
+/* =========================================================
+ * SAVE LEAD
+ * ========================================================= */
+
+async function saveSelectedLeadChanges() {
+
+  if (
+    !CRM_STATE.selectedLeadId
+  ) {
+
+    return;
+  }
+
+
+  const updates =
+    {
+      ...CRM_STATE
+        .pendingUpdates
+    };
+
+
+  if (
+    Object.keys(
+      updates
+    ).length === 0
+  ) {
+
+    return;
+  }
+
+
+  const saveButton =
+    document.getElementById(
+      "saveLeadButton"
+    );
+
+
+  const saveStatus =
+    document.getElementById(
+      "leadSaveStatus"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.disabled =
+      true;
+
+
+    saveButton.textContent =
+      "Saving...";
+  }
+
+
+  if (saveStatus) {
+
+    saveStatus.textContent =
+      "Saving changes...";
+  }
+
+
+  try {
+
+    const updatedLead =
+      await updateCrmLead(
+        CRM_STATE.selectedLeadId,
+        updates
+      );
+
+
+    CRM_STATE.selectedLead =
+      updatedLead;
+
+
+    CRM_STATE.pendingUpdates =
+      {};
+
+
+    /*
+     * Update the lightweight lead list
+     * without requiring a complete refresh.
+     */
+    updateLeadInState(
+      updatedLead
+    );
+
+
+    applyLeadFilters();
+
+
+    renderLeadDetail(
+      updatedLead
+    );
+
+
+    const refreshedStatus =
+      document.getElementById(
+        "leadSaveStatus"
+      );
+
+
+    if (refreshedStatus) {
+
+      refreshedStatus.textContent =
+        "Changes saved";
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    if (saveButton) {
+
+      saveButton.disabled =
+        false;
+
+
+      saveButton.textContent =
+        "Save changes";
+    }
+
+
+    if (saveStatus) {
+
+      saveStatus.textContent =
+        "Could not save: " +
+        error.message;
+    }
+  }
+}
+
+
+/* =========================================================
+ * UPDATE LEAD IN LOCAL STATE
+ * ========================================================= */
+
+function updateLeadInState(
+  updatedLead
+) {
+
+  if (
+    !updatedLead ||
+    !updatedLead.Lead_id
+  ) {
+
+    return;
+  }
+
+
+  const index =
+    CRM_STATE.leads
+      .findIndex(
+        lead =>
+          lead.Lead_id ===
+          updatedLead.Lead_id
+      );
+
+
+  if (
+    index === -1
+  ) {
+
+    return;
+  }
+
+
+  /*
+   * Merge complete lead data into
+   * the lightweight list entry.
+   */
+  CRM_STATE.leads[
+    index
+  ] = {
+
+    ...CRM_STATE.leads[
+      index
+    ],
+
+    ...updatedLead
+  };
+}
+
+
+/* =========================================================
+ * SAVE STATE
+ * ========================================================= */
+
+function updateLeadSaveState() {
+
+  const saveButton =
+    document.getElementById(
+      "saveLeadButton"
+    );
+
+
+  const saveStatus =
+    document.getElementById(
+      "leadSaveStatus"
+    );
+
+
+  const count =
+    Object.keys(
+      CRM_STATE.pendingUpdates
+    ).length;
+
+
+  if (saveButton) {
+
+    saveButton.disabled =
+      count === 0;
+  }
+
+
+  if (saveStatus) {
+
+    saveStatus.textContent =
+
+      count === 0
+
+        ? "No unsaved changes"
+
+        : `${count} unsaved change${
+            count === 1
+              ? ""
+              : "s"
+          }`;
+  }
+}
+
+
+/* =========================================================
+ * EDITABLE FIELD RENDERING
+ * ========================================================= */
+
+function renderEditableDetailField(
+  label,
+  field,
+  value,
+  type = "text"
+) {
+
+  if (
+    CRM_PROTECTED_FIELDS.includes(
+      field
+    )
+  ) {
+
+    return renderDetailField(
+      label,
+      value
+    );
+  }
+
+
+  const cleanValue =
+    value === null ||
+    value === undefined
+
+      ? ""
+
+      : String(
+          value
+        );
+
+
+  if (
+    type ===
+      "textarea"
+  ) {
+
+    return `
+
+      <div class="detail-field editable-detail-field">
+
+        <label
+          class="detail-label"
+          for="crm-field-${escapeHtmlAttribute(
+            field
+          )}"
+        >
+          ${escapeHtml(
+            label
+          )}
+        </label>
+
+
+        <textarea
+          id="crm-field-${escapeHtmlAttribute(
+            field
+          )}"
+          class="crm-detail-input crm-detail-textarea"
+          data-crm-field="${escapeHtmlAttribute(
+            field
+          )}"
+        >${escapeHtml(
+          cleanValue
+        )}</textarea>
+
+      </div>
+    `;
+  }
+
+
+  let inputValue =
+    cleanValue;
+
+
+  if (
+    type ===
+      "datetime-local"
+  ) {
+
+    inputValue =
+      formatDateTimeLocalValue(
+        cleanValue
+      );
+  }
+
+
+  return `
+
+    <div class="detail-field editable-detail-field">
+
+      <label
+        class="detail-label"
+        for="crm-field-${escapeHtmlAttribute(
+          field
+        )}"
+      >
         ${escapeHtml(
-          message
+          label
         )}
-      </p>
+      </label>
+
+
+      <input
+        id="crm-field-${escapeHtmlAttribute(
+          field
+        )}"
+        class="crm-detail-input"
+        type="${escapeHtmlAttribute(
+          type
+        )}"
+        value="${escapeHtmlAttribute(
+          inputValue
+        )}"
+        data-crm-field="${escapeHtmlAttribute(
+          field
+        )}"
+      />
 
     </div>
   `;
@@ -843,7 +1570,76 @@ function renderLeadDetailError(
 
 
 /* =========================================================
- * RENDER HELPERS
+ * EDITABLE CHECKBOX
+ * ========================================================= */
+
+function renderEditableCheckboxField(
+  label,
+  field,
+  value
+) {
+
+  if (
+    CRM_PROTECTED_FIELDS.includes(
+      field
+    )
+  ) {
+
+    return renderDetailField(
+      label,
+      value
+        ? "Yes"
+        : "No"
+    );
+  }
+
+
+  const checked =
+    normalizeCrmBoolean(
+      value
+    );
+
+
+  return `
+
+    <div class="detail-field editable-detail-field">
+
+      <span class="detail-label">
+
+        ${escapeHtml(
+          label
+        )}
+
+      </span>
+
+
+      <label class="crm-checkbox-control">
+
+        <input
+          type="checkbox"
+          data-crm-field="${escapeHtmlAttribute(
+            field
+          )}"
+          ${checked
+            ? "checked"
+            : ""}
+        />
+
+        <span>
+          ${checked
+            ? "Completed"
+            : "Not completed"}
+        </span>
+
+      </label>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * READ-ONLY FIELD
  * ========================================================= */
 
 function renderDetailField(
@@ -884,9 +1680,11 @@ function renderDetailField(
         target="_blank"
         rel="noopener noreferrer"
       >
+
         ${escapeHtml(
           cleanValue
         )}
+
       </a>
     `;
   }
@@ -897,13 +1695,18 @@ function renderDetailField(
     <div class="detail-field">
 
       <span class="detail-label">
+
         ${escapeHtml(
           label
         )}
+
       </span>
 
+
       <div class="detail-value">
+
         ${renderedValue}
+
       </div>
 
     </div>
@@ -911,14 +1714,33 @@ function renderDetailField(
 }
 
 
+/* =========================================================
+ * READ-ONLY LINK
+ * ========================================================= */
+
+function renderReadOnlyLinkField(
+  label,
+  value
+) {
+
+  return renderDetailField(
+    label,
+    value,
+    true
+  );
+}
+
+
+/* =========================================================
+ * TEXT BLOCK
+ * ========================================================= */
+
 function renderTextBlock(
   label,
   value
 ) {
 
-  if (
-    !value
-  ) {
+  if (!value) {
     return "";
   }
 
@@ -928,14 +1750,129 @@ function renderTextBlock(
     <div class="detail-text-block">
 
       <span class="detail-label">
+
         ${escapeHtml(
           label
         )}
+
       </span>
+
+
+      <p>
+
+        ${escapeHtml(
+          value
+        )}
+
+      </p>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+ * EMPTY / LOADING / ERROR
+ * ========================================================= */
+
+function renderEmptyLeadDetail() {
+
+  const panel =
+    document.getElementById(
+      "leadDetail"
+    );
+
+
+  if (!panel) {
+    return;
+  }
+
+
+  panel.className =
+    "detail-panel empty";
+
+
+  panel.innerHTML = `
+
+    <div class="detail-empty-state">
+
+      <h2>
+        Select a lead
+      </h2>
+
+      <p>
+        Click a row to load the complete CRM record.
+      </p>
+
+    </div>
+  `;
+}
+
+
+function renderLeadDetailLoading() {
+
+  const panel =
+    document.getElementById(
+      "leadDetail"
+    );
+
+
+  if (!panel) {
+    return;
+  }
+
+
+  panel.className =
+    "detail-panel";
+
+
+  panel.innerHTML = `
+
+    <div class="detail-empty-state">
+
+      <h2>
+        Loading...
+      </h2>
+
+      <p>
+        Retrieving lead information.
+      </p>
+
+    </div>
+  `;
+}
+
+
+function renderLeadDetailError(
+  message
+) {
+
+  const panel =
+    document.getElementById(
+      "leadDetail"
+    );
+
+
+  if (!panel) {
+    return;
+  }
+
+
+  panel.className =
+    "detail-panel";
+
+
+  panel.innerHTML = `
+
+    <div class="detail-empty-state">
+
+      <h2>
+        Could not load lead
+      </h2>
 
       <p>
         ${escapeHtml(
-          value
+          message
         )}
       </p>
 
@@ -943,6 +1880,10 @@ function renderTextBlock(
   `;
 }
 
+
+/* =========================================================
+ * NEXT ACTION TABLE CELL
+ * ========================================================= */
 
 function renderNextAction(
   lead
@@ -953,6 +1894,7 @@ function renderNextAction(
   ) {
 
     return `
+
       <span class="muted-text">
         —
       </span>
@@ -965,25 +1907,34 @@ function renderNextAction(
     <div class="next-action-cell">
 
       <strong>
+
         ${escapeHtml(
           formatCrmLabel(
             lead.Next_action_type
           )
         )}
+
       </strong>
 
+
       <span>
+
         ${escapeHtml(
           formatCrmDateTime(
             lead.Next_action_at
           )
         )}
+
       </span>
 
     </div>
   `;
 }
 
+
+/* =========================================================
+ * BADGES
+ * ========================================================= */
 
 function renderCrmBadge(
   value,
@@ -993,6 +1944,7 @@ function renderCrmBadge(
   if (!value) {
 
     return `
+
       <span class="badge badge-neutral">
         —
       </span>
@@ -1021,11 +1973,13 @@ function renderCrmBadge(
         normalized
       )}"
     >
+
       ${escapeHtml(
         formatCrmLabel(
           value
         )
       )}
+
     </span>
   `;
 }
@@ -1044,13 +1998,18 @@ function updateLeadCount(
       "leadCount"
     );
 
+
   if (!element) {
     return;
   }
 
 
   element.textContent =
-    `${count} lead${count === 1 ? "" : "s"}`;
+    `${count} lead${
+      count === 1
+        ? ""
+        : "s"
+    }`;
 }
 
 
@@ -1063,6 +2022,7 @@ function showCrmStatus(
     document.getElementById(
       "statusPanel"
     );
+
 
   if (!panel) {
     return;
@@ -1088,6 +2048,7 @@ function hideCrmStatus() {
     document.getElementById(
       "statusPanel"
     );
+
 
   if (!panel) {
     return;
@@ -1151,6 +2112,7 @@ function formatCrmDateTime(
       date.getTime()
     )
   ) {
+
     return String(
       value
     );
@@ -1160,14 +2122,86 @@ function formatCrmDateTime(
   return new Intl.DateTimeFormat(
     "en-GB",
     {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
+
+      year:
+        "numeric",
+
+      month:
+        "short",
+
+      day:
+        "2-digit",
+
+      hour:
+        "2-digit",
+
+      minute:
+        "2-digit"
     }
   ).format(
     date
+  );
+}
+
+
+function formatDateTimeLocalValue(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+
+  const date =
+    new Date(
+      value
+    );
+
+
+  if (
+    isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return "";
+  }
+
+
+  const pad =
+    number =>
+      String(
+        number
+      ).padStart(
+        2,
+        "0"
+      );
+
+
+  return (
+
+    date.getFullYear() +
+    "-" +
+
+    pad(
+      date.getMonth() + 1
+    ) +
+    "-" +
+
+    pad(
+      date.getDate()
+    ) +
+    "T" +
+
+    pad(
+      date.getHours()
+    ) +
+    ":" +
+
+    pad(
+      date.getMinutes()
+    )
   );
 }
 
@@ -1178,11 +2212,88 @@ function combineLocation(
 ) {
 
   return [
+
     location,
     country
+
   ]
     .filter(Boolean)
     .join(", ");
+}
+
+
+/* =========================================================
+ * COMPARISON HELPERS
+ * ========================================================= */
+
+function normalizeComparableCrmValue(
+  field,
+  value
+) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return "";
+  }
+
+
+  if (
+    typeof value ===
+      "boolean"
+  ) {
+
+    return value
+      ? "true"
+      : "false";
+  }
+
+
+  if (
+    field ===
+      "Next_action_at"
+  ) {
+
+    return formatDateTimeLocalValue(
+      value
+    );
+  }
+
+
+  return String(
+    value
+  ).trim();
+}
+
+
+function normalizeCrmBoolean(
+  value
+) {
+
+  if (
+    value === true
+  ) {
+
+    return true;
+  }
+
+
+  const text =
+    String(
+      value || ""
+    )
+      .trim()
+      .toUpperCase();
+
+
+  return (
+
+    text === "TRUE" ||
+    text === "YES" ||
+    text === "1"
+  );
 }
 
 
