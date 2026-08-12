@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
 
     // =====================================================
-    // CRM API PROXY - IT'S WORKING NOW
+    // CRM API PROXY
     // =====================================================
 
     if (url.pathname === "/api") {
@@ -52,7 +52,7 @@ export default {
           new URL(env.CRM_API_URL);
 
         /*
-         * Forward original API query parameters.
+         * Forward original query parameters.
          */
         url.searchParams.forEach(
           (value, key) => {
@@ -80,13 +80,33 @@ export default {
           env.CRM_PROXY_SECRET
         );
 
+        const fetchOptions = {
+          method: request.method,
+          redirect: "follow"
+        };
+
+        /*
+         * Forward POST body to Apps Script.
+         */
+        if (
+          request.method === "POST"
+        ) {
+          fetchOptions.headers = {
+            "Content-Type":
+              request.headers.get(
+                "Content-Type"
+              ) ||
+              "application/json"
+          };
+
+          fetchOptions.body =
+            await request.text();
+        }
+
         const response =
           await fetch(
             appsScriptUrl.toString(),
-            {
-              method: request.method,
-              redirect: "follow"
-            }
+            fetchOptions
           );
 
         return new Response(
