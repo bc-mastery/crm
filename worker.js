@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
 
     // =====================================================
-    // CRM API PROXY
+    // CRM API PROXY - IT'S WORKING NOW
     // =====================================================
 
     if (url.pathname === "/api") {
