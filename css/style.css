@@ -188,9 +188,9 @@ a:hover {
   background:
   linear-gradient(
     180deg,
-    var(--bc-dark-teal) 0%,
+    #30BA80 0%,
     #08735F 55%,
-    var(--bc-green) 100%
+    var(--bc-dark-teal) 100%
   );
 
   color: var(--sidebar-text);
@@ -363,9 +363,8 @@ a:hover {
     3px;
 
   border-top:
-    1px solid
-    rgba(51, 51, 51, 0.55);
-}
+  1px solid
+  rgba(255, 255, 255, 0.55);
 
 
 .sidebar-footer-label {
@@ -373,7 +372,7 @@ a:hover {
 
   font-weight: 700;
 
-  color: #333333;
+  color: #FFFFFF;
 }
 
 
@@ -382,7 +381,7 @@ a:hover {
 
   font-size: 11px;
 
-  color: #333333;
+  color: #FFFFFF;
 }
 
 
