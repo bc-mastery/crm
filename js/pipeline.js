@@ -211,13 +211,7 @@ function bindPipelineEvents() {
   /*
    * Touchpad / mouse-wheel horizontal Pipeline scrolling.
    */
-  const board =
-    document.getElementById(
-      "pipelineBoard"
-    );
-
-
-  if (board) {
+    if (board) {
 
   board.addEventListener(
     "wheel",
