@@ -103,109 +103,6 @@ async function initializePipeline() {
 }
 
 
-document
-  .getElementById(
-    "pipelineRefreshButton"
-  )
-  ?.addEventListener(
-    "click",
-    async () => {
-
-      try {
-
-        PIPELINE_STATE.meta =
-          await getCrmMeta();
-
-      } catch (error) {
-
-        console.error(error);
-      }
-
-
-      await loadPipelineLeads();
-    }
-  );
-
-
-  /*
-   * Touchpad / mouse-wheel horizontal Pipeline scrolling.
-   *
-   * When the pointer is over the board itself,
-   * vertical wheel movement moves the Pipeline horizontally.
-   *
-   * Vertical scrolling inside an individual stage lane
-   * remains available.
-   */
-  const board =
-    document.getElementById(
-      "pipelineBoard"
-    );
-
-
-  if (board) {
-
-    board.addEventListener(
-      "wheel",
-      event => {
-
-        /*
-         * If the pointer is currently over a vertically
-         * scrollable stage body, let that stage scroll
-         * vertically normally.
-         */
-        const laneBody =
-          event.target.closest(
-            ".pipeline-lane-body"
-          );
-
-
-        if (laneBody) {
-
-          const canScrollVertically =
-            laneBody.scrollHeight >
-            laneBody.clientHeight;
-
-
-          if (canScrollVertically) {
-
-            return;
-          }
-        }
-
-
-        /*
-         * Native horizontal touchpad movement.
-         */
-        if (
-          Math.abs(event.deltaX) >
-          Math.abs(event.deltaY)
-        ) {
-
-          return;
-        }
-
-
-        /*
-         * Convert vertical wheel/touchpad movement
-         * into horizontal Pipeline movement.
-         */
-        if (event.deltaY !== 0) {
-
-          event.preventDefault();
-
-          board.scrollLeft +=
-            event.deltaY;
-        }
-
-      },
-      {
-        passive: false
-      }
-    );
-  }
-}
-
-
 /* =========================================================
  * LOAD
  * ========================================================= */
@@ -309,6 +206,79 @@ function bindPipelineEvents() {
         await loadPipelineLeads();
       }
     );
+
+
+  /*
+   * Touchpad / mouse-wheel horizontal Pipeline scrolling.
+   */
+  const board =
+    document.getElementById(
+      "pipelineBoard"
+    );
+
+
+  if (board) {
+
+    board.addEventListener(
+      "wheel",
+      event => {
+
+        /*
+         * If the pointer is over a vertically scrollable
+         * stage body, allow normal vertical scrolling.
+         */
+        const laneBody =
+          event.target.closest(
+            ".pipeline-lane-body"
+          );
+
+
+        if (laneBody) {
+
+          const canScrollVertically =
+            laneBody.scrollHeight >
+            laneBody.clientHeight;
+
+
+          if (canScrollVertically) {
+
+            return;
+          }
+        }
+
+
+        /*
+         * If the touchpad is already producing a stronger
+         * horizontal gesture, let the browser handle it.
+         */
+        if (
+          Math.abs(event.deltaX) >
+          Math.abs(event.deltaY)
+        ) {
+
+          return;
+        }
+
+
+        /*
+         * Convert vertical wheel/touchpad movement
+         * into horizontal Pipeline movement.
+         */
+        if (event.deltaY !== 0) {
+
+          event.preventDefault();
+
+
+          board.scrollLeft +=
+            event.deltaY;
+        }
+
+      },
+      {
+        passive: false
+      }
+    );
+  }
 }
 
 
@@ -819,23 +789,42 @@ function createPipelineLane(
     .forEach(
       card => {
 
+        /*
+         * Mouse / touch navigation.
+         */
         card.addEventListener(
           "click",
           () => {
 
-            const leadId =
-              card.dataset.pipelineLead;
+            openPipelineLead(
+              card
+            );
+          }
+        );
 
 
-            if (!leadId) {
+        /*
+         * Keyboard navigation.
+         */
+        card.addEventListener(
+          "keydown",
+          event => {
+
+            if (
+              event.key !== "Enter" &&
+              event.key !== " "
+            ) {
+
               return;
             }
 
 
-            window.location.href =
-              `index.html?lead=${encodeURIComponent(
-                leadId
-              )}`;
+            event.preventDefault();
+
+
+            openPipelineLead(
+              card
+            );
           }
         );
       }
@@ -843,6 +832,30 @@ function createPipelineLane(
 
 
   return lane;
+}
+
+
+/* =========================================================
+ * OPEN LEAD
+ * ========================================================= */
+
+function openPipelineLead(
+  card
+) {
+
+  const leadId =
+    card.dataset.pipelineLead;
+
+
+  if (!leadId) {
+    return;
+  }
+
+
+  window.location.href =
+    `index.html?lead=${encodeURIComponent(
+      leadId
+    )}`;
 }
 
 
@@ -1165,7 +1178,7 @@ function comparePipelineDates(
 
 
   /*
-   * Empty dates always at the bottom.
+   * Empty dates always go to the bottom.
    */
   if (
     timeA === null &&
@@ -1350,6 +1363,9 @@ function parsePipelineDateTime(
     Number.isFinite(value)
   ) {
 
+    /*
+     * JavaScript timestamp in milliseconds.
+     */
     if (
       value >
       100000000000
