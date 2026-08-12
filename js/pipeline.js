@@ -209,18 +209,126 @@ function bindPipelineEvents() {
 
 
   /* =====================================================
+   * PIPELINE BOARD REFERENCES
+   * ===================================================== */
+
+  const board =
+    document.getElementById(
+      "pipelineBoard"
+    );
+
+
+  const scrollLeftButton =
+    document.getElementById(
+      "pipelineScrollLeft"
+    );
+
+
+  const scrollRightButton =
+    document.getElementById(
+      "pipelineScrollRight"
+    );
+
+
+  /* =====================================================
+   * ONE-STAGE SCROLL STEP
+   * ===================================================== */
+
+  function getPipelineScrollStep() {
+
+    const firstLane =
+      board?.querySelector(
+        ".pipeline-lane"
+      );
+
+
+    if (!firstLane) {
+      return 272;
+    }
+
+
+    const boardStyles =
+      window.getComputedStyle(
+        board
+      );
+
+
+    const gap =
+      parseFloat(
+        boardStyles.columnGap ||
+        boardStyles.gap ||
+        "0"
+      ) || 0;
+
+
+    return (
+      firstLane
+        .getBoundingClientRect()
+        .width +
+      gap
+    );
+  }
+
+
+  /* =====================================================
+   * LEFT ARROW
+   * ===================================================== */
+
+  scrollLeftButton
+    ?.addEventListener(
+      "click",
+      () => {
+
+        if (!board) {
+          return;
+        }
+
+
+        board.scrollBy({
+
+          left:
+            -getPipelineScrollStep(),
+
+          behavior:
+            "smooth"
+        });
+      }
+    );
+
+
+  /* =====================================================
+   * RIGHT ARROW
+   * ===================================================== */
+
+  scrollRightButton
+    ?.addEventListener(
+      "click",
+      () => {
+
+        if (!board) {
+          return;
+        }
+
+
+        board.scrollBy({
+
+          left:
+            getPipelineScrollStep(),
+
+          behavior:
+            "smooth"
+        });
+      }
+    );
+
+
+  /* =====================================================
    * GLOBAL PIPELINE TOUCHPAD SCROLLING
    * ===================================================== */
 
   const pipelineMain =
     document.querySelector(
       ".pipeline-main"
-    );
-
-
-  const board =
-    document.getElementById(
-      "pipelineBoard"
     );
 
 
@@ -233,10 +341,6 @@ function bindPipelineEvents() {
       "wheel",
       event => {
 
-        /*
-         * Check whether the pointer is currently
-         * over a vertically scrollable stage.
-         */
         const laneBody =
           event.target.closest(
             ".pipeline-lane-body"
@@ -244,12 +348,16 @@ function bindPipelineEvents() {
 
 
         /*
-         * Horizontal touchpad gesture:
-         * always move the Pipeline board horizontally.
+         * True horizontal touchpad gesture:
+         * scroll the Pipeline horizontally.
          */
         if (
-          Math.abs(event.deltaX) >
-          Math.abs(event.deltaY)
+          Math.abs(
+            event.deltaX
+          ) >
+          Math.abs(
+            event.deltaY
+          )
         ) {
 
           event.preventDefault();
@@ -262,9 +370,9 @@ function bindPipelineEvents() {
 
 
         /*
-         * If we're over a stage that actually has
-         * vertical scrolling available, preserve
-         * normal up/down scrolling in that stage.
+         * If pointer is over a stage that actually
+         * has vertical overflow, preserve normal
+         * vertical scrolling inside that stage.
          */
         if (laneBody) {
 
@@ -282,8 +390,8 @@ function bindPipelineEvents() {
 
         /*
          * Everywhere else in the light Pipeline area,
-         * convert vertical touchpad / mouse-wheel
-         * movement into horizontal board scrolling.
+         * vertical wheel/touchpad movement becomes
+         * horizontal Pipeline scrolling.
          */
         if (
           event.deltaY !== 0
