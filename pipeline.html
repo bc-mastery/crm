@@ -275,16 +275,40 @@
            PIPELINE BOARD
       ==================================================== -->
 
-      <section
-        id="pipelineBoard"
-        class="pipeline-board"
-      >
+      <div class="pipeline-board-shell">
 
-        <!--
-          pipeline.js inserts stage columns here.
-        -->
+  <button
+    type="button"
+    id="pipelineScrollLeft"
+    class="pipeline-scroll-button pipeline-scroll-button-left"
+    aria-label="Previous pipeline stage"
+  >
+    ‹
+  </button>
 
-      </section>
+
+  <section
+    id="pipelineBoard"
+    class="pipeline-board"
+  >
+
+    <!--
+      pipeline.js inserts stage columns here.
+    -->
+
+  </section>
+
+
+  <button
+    type="button"
+    id="pipelineScrollRight"
+    class="pipeline-scroll-button pipeline-scroll-button-right"
+    aria-label="Next pipeline stage"
+  >
+    ›
+  </button>
+
+</div>
 
     </main>
 
