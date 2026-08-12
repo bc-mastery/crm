@@ -289,7 +289,6 @@ function bindPipelineEvents() {
       passive: false
     }
   );
-}
   }
 }
 
