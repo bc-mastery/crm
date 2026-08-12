@@ -81,6 +81,116 @@ async function initializeCrmApp() {
 
 
   await loadCrmLeads();
+
+
+  /*
+   * If the Leads page was opened from the Pipeline,
+   * automatically open the requested lead.
+   */
+  await openLeadFromUrl();
+}
+
+
+/* =========================================================
+ * OPEN LEAD FROM URL
+ * ========================================================= */
+
+async function openLeadFromUrl() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+
+  const leadId =
+    String(
+      params.get("lead") || ""
+    ).trim();
+
+
+  if (!leadId) {
+    return;
+  }
+
+
+  /*
+   * Make sure this lead is actually available
+   * to the authenticated CRM user.
+   *
+   * This is especially important for consultants,
+   * because their lead list is permission-filtered
+   * by the backend.
+   */
+  const leadExists =
+    CRM_STATE.leads.some(
+      lead =>
+        String(
+          lead.Lead_id || ""
+        ).trim() ===
+        leadId
+    );
+
+
+  if (!leadExists) {
+
+    showCrmStatus(
+      "The requested lead is not available.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  /*
+   * Open the complete Lead card.
+   */
+  await selectCrmLead(
+    leadId
+  );
+
+
+  /*
+   * Bring the selected lead into view
+   * inside the independently scrollable
+   * Leads list.
+   */
+  const selectedRow =
+    document.querySelector(
+      `.lead-row[data-lead-id="${CSS.escape(
+        leadId
+      )}"]`
+    );
+
+
+  if (selectedRow) {
+
+    selectedRow.scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "center"
+    });
+  }
+
+
+  /*
+   * Remove ?lead=... after opening it.
+   *
+   * This means a later Refresh will not
+   * unexpectedly reopen the original lead.
+   */
+  const cleanUrl =
+    window.location.pathname;
+
+
+  window.history.replaceState(
+    {},
+    document.title,
+    cleanUrl
+  );
 }
 
 
