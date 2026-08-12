@@ -27,6 +27,31 @@ let CRM_STATE = {
 
 
 /* =========================================================
+ * LAST ACTION TIMESTAMP FIELDS
+ * ========================================================= */
+
+const CRM_LAST_ACTION_FIELDS = [
+
+  "Connection_request_sent",
+  "Connection_accepted",
+  "Message_sent",
+  "Response_time",
+
+  "RC_offered_time",
+  "RC_booked_time",
+
+  "GS_sent_time",
+  "GS_completed_time",
+
+  "RC_done_time",
+  "Proposal_time",
+
+  "Won_time",
+  "Lost_time"
+];
+
+
+/* =========================================================
  * INIT
  * ========================================================= */
 
@@ -80,23 +105,12 @@ async function loadCrmLeads() {
       leads;
 
 
-    CRM_STATE.filteredLeads =
-      leads;
-
-
-    populatePipelineStageFilter(
+    populateAllFilters(
       leads
     );
 
 
-    renderLeadTable(
-      leads
-    );
-
-
-    updateLeadCount(
-      leads.length
-    );
+    applyLeadFilters();
 
 
     hideCrmStatus();
@@ -122,52 +136,44 @@ async function loadCrmLeads() {
 
 function bindCrmUiEvents() {
 
-  const searchInput =
-    document.getElementById(
+  const filterIds = [
+
+    "stageFilter",
+    "icpFilter",
+    "researchStatusFilter",
+    "nextActionTypeFilter",
+    "responsibleFilter",
+    "listOrder"
+  ];
+
+
+  document
+    .getElementById(
       "searchInput"
-    );
-
-
-  const stageFilter =
-    document.getElementById(
-      "stageFilter"
-    );
-
-
-  const icpFilter =
-    document.getElementById(
-      "icpFilter"
-    );
-
-
-  const refreshButton =
-    document.getElementById(
-      "refreshButton"
-    );
-
-
-  searchInput
+    )
     ?.addEventListener(
       "input",
       applyLeadFilters
     );
 
 
-  stageFilter
-    ?.addEventListener(
-      "change",
-      applyLeadFilters
-    );
+  filterIds.forEach(
+    id => {
+
+      document
+        .getElementById(id)
+        ?.addEventListener(
+          "change",
+          applyLeadFilters
+        );
+    }
+  );
 
 
-  icpFilter
-    ?.addEventListener(
-      "change",
-      applyLeadFilters
-    );
-
-
-  refreshButton
+  document
+    .getElementById(
+      "refreshButton"
+    )
     ?.addEventListener(
       "click",
       async () => {
@@ -206,95 +212,339 @@ function bindCrmUiEvents() {
 
 
 /* =========================================================
- * FILTERING
+ * POPULATE FILTERS
+ * ========================================================= */
+
+function populateAllFilters(
+  leads
+) {
+
+  populateFilterFromLeadField(
+    "stageFilter",
+    leads,
+    "Pipeline_stage",
+    "All pipeline stages"
+  );
+
+
+  populateFilterFromLeadField(
+    "icpFilter",
+    leads,
+    "ICP_fit_level",
+    "All ICP fits"
+  );
+
+
+  populateFilterFromLeadField(
+    "researchStatusFilter",
+    leads,
+    "Research_status",
+    "All research statuses"
+  );
+
+
+  populateFilterFromLeadField(
+    "nextActionTypeFilter",
+    leads,
+    "Next_action_type",
+    "All next actions"
+  );
+
+
+  populateResponsibleFilter();
+}
+
+
+function populateFilterFromLeadField(
+  selectId,
+  leads,
+  field,
+  emptyLabel
+) {
+
+  const select =
+    document.getElementById(
+      selectId
+    );
+
+
+  if (!select) {
+    return;
+  }
+
+
+  const currentValue =
+    select.value;
+
+
+  const values =
+    [
+      ...new Set(
+        leads
+          .map(
+            lead =>
+              String(
+                lead[field] || ""
+              ).trim()
+          )
+          .filter(Boolean)
+      )
+    ].sort(
+      (a, b) =>
+        a.localeCompare(b)
+    );
+
+
+  select.innerHTML = `
+
+    <option value="">
+      ${escapeHtml(
+        emptyLabel
+      )}
+    </option>
+  `;
+
+
+  values.forEach(
+    value => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        value;
+
+
+      option.textContent =
+        formatCrmLabel(
+          value
+        );
+
+
+      select.appendChild(
+        option
+      );
+    }
+  );
+
+
+  if (
+    values.includes(
+      currentValue
+    )
+  ) {
+
+    select.value =
+      currentValue;
+  }
+}
+
+
+function populateResponsibleFilter() {
+
+  const select =
+    document.getElementById(
+      "responsibleFilter"
+    );
+
+
+  if (!select) {
+    return;
+  }
+
+
+  const currentValue =
+    select.value;
+
+
+  const users =
+    CRM_STATE.meta
+      ?.responsibleUsers ||
+    [];
+
+
+  select.innerHTML = `
+
+    <option value="">
+      ${
+        users.length === 1
+          ? "My leads"
+          : "All responsible users"
+      }
+    </option>
+  `;
+
+
+  users.forEach(
+    user => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        user.email;
+
+
+      option.textContent =
+        user.name ||
+        user.email;
+
+
+      select.appendChild(
+        option
+      );
+    }
+  );
+
+
+  if (
+    users.some(
+      user =>
+        user.email ===
+        currentValue
+    )
+  ) {
+
+    select.value =
+      currentValue;
+  }
+}
+
+
+/* =========================================================
+ * FILTER + ORDER
  * ========================================================= */
 
 function applyLeadFilters() {
 
   const searchValue =
-    String(
-      document
-        .getElementById(
-          "searchInput"
-        )
-        ?.value || ""
+    getElementValue(
+      "searchInput"
     )
-      .trim()
       .toLowerCase();
 
 
   const stageValue =
-    String(
-      document
-        .getElementById(
-          "stageFilter"
-        )
-        ?.value || ""
+    getElementValue(
+      "stageFilter"
     )
-      .trim()
       .toUpperCase();
 
 
   const icpValue =
-    String(
-      document
-        .getElementById(
-          "icpFilter"
-        )
-        ?.value || ""
+    getElementValue(
+      "icpFilter"
     )
-      .trim()
       .toUpperCase();
 
 
-  const filtered =
-    CRM_STATE.leads
-      .filter(
-        lead => {
-
-          const searchable =
-            [
-              lead.Company_name,
-              lead.Founder_1_name,
-              lead.Lead_id,
-              lead.Website,
-              lead.Responsible_email,
-              lead.Responsible_name
-            ]
-              .join(" ")
-              .toLowerCase();
+  const researchValue =
+    getElementValue(
+      "researchStatusFilter"
+    )
+      .toUpperCase();
 
 
-          const matchesSearch =
-            !searchValue ||
-            searchable.includes(
-              searchValue
-            );
+  const actionValue =
+    getElementValue(
+      "nextActionTypeFilter"
+    )
+      .toUpperCase();
 
 
-          const matchesStage =
-            !stageValue ||
-            String(
-              lead.Pipeline_stage || ""
-            ).toUpperCase() ===
-              stageValue;
+  const responsibleValue =
+    getElementValue(
+      "responsibleFilter"
+    )
+      .toLowerCase();
 
 
-          const matchesIcp =
-            !icpValue ||
-            String(
-              lead.ICP_fit_level || ""
-            ).toUpperCase() ===
-              icpValue;
+  let filtered =
+    CRM_STATE.leads.filter(
+      lead => {
+
+        const searchable =
+          [
+            lead.Company_name,
+            lead.Founder_1_name,
+            lead.Lead_id,
+            lead.Website,
+            lead.Responsible_email,
+            lead.Responsible_name
+          ]
+            .join(" ")
+            .toLowerCase();
 
 
-          return (
-            matchesSearch &&
-            matchesStage &&
-            matchesIcp
+        const matchesSearch =
+          !searchValue ||
+          searchable.includes(
+            searchValue
           );
-        }
-      );
+
+
+        const matchesStage =
+          !stageValue ||
+          String(
+            lead.Pipeline_stage || ""
+          ).toUpperCase() ===
+            stageValue;
+
+
+        const matchesIcp =
+          !icpValue ||
+          String(
+            lead.ICP_fit_level || ""
+          ).toUpperCase() ===
+            icpValue;
+
+
+        const matchesResearch =
+          !researchValue ||
+          String(
+            lead.Research_status || ""
+          ).toUpperCase() ===
+            researchValue;
+
+
+        const matchesAction =
+          !actionValue ||
+          String(
+            lead.Next_action_type || ""
+          ).toUpperCase() ===
+            actionValue;
+
+
+        const matchesResponsible =
+          !responsibleValue ||
+          String(
+            lead.Responsible_email || ""
+          ).toLowerCase() ===
+            responsibleValue;
+
+
+        return (
+          matchesSearch &&
+          matchesStage &&
+          matchesIcp &&
+          matchesResearch &&
+          matchesAction &&
+          matchesResponsible
+        );
+      }
+    );
+
+
+  filtered =
+    sortCrmLeads(
+      filtered
+    );
 
 
   CRM_STATE.filteredLeads =
@@ -313,83 +563,208 @@ function applyLeadFilters() {
 
 
 /* =========================================================
- * PIPELINE FILTER
+ * SORTING
  * ========================================================= */
 
-function populatePipelineStageFilter(
+function sortCrmLeads(
   leads
 ) {
 
-  const select =
-    document.getElementById(
-      "stageFilter"
-    );
+  const order =
+    getElementValue(
+      "listOrder"
+    ) ||
+    "newest";
 
 
-  if (!select) {
-    return;
-  }
+  const sorted =
+    [...leads];
 
 
-  const currentValue =
-    select.value;
+  sorted.sort(
+    (a, b) => {
+
+      switch (order) {
+
+        case "oldest":
+
+          return compareCrmDates(
+            a.Company_lead,
+            b.Company_lead,
+            "asc"
+          );
 
 
-  const stages =
-    [
-      ...new Set(
-        leads
-          .map(
-            lead =>
-              String(
-                lead.Pipeline_stage ||
-                ""
-              ).trim()
-          )
-          .filter(Boolean)
-      )
-    ].sort();
+        case "company_az":
+
+          return String(
+            a.Company_name || ""
+          ).localeCompare(
+            String(
+              b.Company_name || ""
+            ),
+            undefined,
+            {
+              sensitivity: "base"
+            }
+          );
 
 
-  select.innerHTML =
-    '<option value="">All pipeline stages</option>';
+        case "next_action_asc":
+
+          return compareCrmDates(
+            a.Next_action_at,
+            b.Next_action_at,
+            "asc"
+          );
 
 
-  stages.forEach(
-    stage => {
+        case "next_action_desc":
 
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        stage;
+          return compareCrmDates(
+            a.Next_action_at,
+            b.Next_action_at,
+            "desc"
+          );
 
 
-      option.textContent =
-        formatCrmLabel(
-          stage
-        );
+        case "last_action_asc":
+
+          return compareCrmDates(
+            getLastActionDate(a),
+            getLastActionDate(b),
+            "asc"
+          );
 
 
-      select.appendChild(
-        option
-      );
+        case "last_action_desc":
+
+          return compareCrmDates(
+            getLastActionDate(a),
+            getLastActionDate(b),
+            "desc"
+          );
+
+
+        case "newest":
+        default:
+
+          return compareCrmDates(
+            a.Company_lead,
+            b.Company_lead,
+            "desc"
+          );
+      }
     }
   );
 
 
+  return sorted;
+}
+
+
+function compareCrmDates(
+  valueA,
+  valueB,
+  direction
+) {
+
+  const timeA =
+    parseCrmDateTime(
+      valueA
+    );
+
+
+  const timeB =
+    parseCrmDateTime(
+      valueB
+    );
+
+
+  /*
+   * Empty dates always go to the bottom.
+   */
   if (
-    stages.includes(
-      currentValue
-    )
+    timeA === null &&
+    timeB === null
   ) {
 
-    select.value =
-      currentValue;
+    return 0;
   }
+
+
+  if (
+    timeA === null
+  ) {
+
+    return 1;
+  }
+
+
+  if (
+    timeB === null
+  ) {
+
+    return -1;
+  }
+
+
+  return direction ===
+    "asc"
+
+      ? timeA - timeB
+
+      : timeB - timeA;
+}
+
+
+/* =========================================================
+ * LAST ACTION
+ * ========================================================= */
+
+function getLastActionDate(
+  lead
+) {
+
+  let newest =
+    null;
+
+
+  CRM_LAST_ACTION_FIELDS
+    .forEach(
+      field => {
+
+        const value =
+          lead[field];
+
+
+        const timestamp =
+          parseCrmDateTime(
+            value
+          );
+
+
+        if (
+          timestamp === null
+        ) {
+
+          return;
+        }
+
+
+        if (
+          newest === null ||
+          timestamp > newest
+        ) {
+
+          newest =
+            timestamp;
+        }
+      }
+    );
+
+
+  return newest;
 }
 
 
@@ -412,7 +787,8 @@ function renderLeadTable(
   }
 
 
-  tbody.innerHTML = "";
+  tbody.innerHTML =
+    "";
 
 
   if (
@@ -423,14 +799,17 @@ function renderLeadTable(
     tbody.innerHTML = `
 
       <tr>
+
         <td
           colspan="6"
           class="empty-table-cell"
         >
           No leads match the current filters.
         </td>
+
       </tr>
     `;
+
 
     return;
   }
@@ -464,23 +843,33 @@ function renderLeadTable(
       }
 
 
+      const lastAction =
+        getLastActionDate(
+          lead
+        );
+
+
       row.innerHTML = `
 
-        <td>
+        <td class="col-company">
 
           <div class="company-cell">
 
             <strong>
+
               ${escapeHtml(
                 lead.Company_name ||
                 "Unnamed company"
               )}
+
             </strong>
 
             <span>
+
               ${escapeHtml(
                 lead.Lead_id || ""
               )}
+
             </span>
 
           </div>
@@ -488,43 +877,62 @@ function renderLeadTable(
         </td>
 
 
-        <td>
+        <td class="col-founder">
+
           ${escapeHtml(
             lead.Founder_1_name ||
             "—"
           )}
+
         </td>
 
 
-        <td>
-          ${renderCrmBadge(
-            lead.ICP_fit_level,
-            "icp"
-          )}
-        </td>
+        <td class="col-stage">
 
-
-        <td>
           ${renderCrmBadge(
             lead.Pipeline_stage,
             "stage"
           )}
+
         </td>
 
 
-        <td>
-          ${renderNextAction(
-            lead
-          )}
-        </td>
+        <td class="col-next-action-date">
 
-
-        <td>
           ${escapeHtml(
-            lead.Responsible_name ||
-            lead.Responsible_email ||
-            "—"
+            formatCrmDate(
+              lead.Next_action_at
+            )
           )}
+
+        </td>
+
+
+        <td class="col-next-action">
+
+          ${
+            lead.Next_action_type
+
+              ? escapeHtml(
+                  formatCrmLabel(
+                    lead.Next_action_type
+                  )
+                )
+
+              : '<span class="muted-text">—</span>'
+          }
+
+        </td>
+
+
+        <td class="col-last-action-date">
+
+          ${escapeHtml(
+            formatCrmDate(
+              lastAction
+            )
+          )}
+
         </td>
       `;
 
@@ -640,387 +1048,461 @@ function renderLeadDetail(
 
   panel.innerHTML = `
 
-    <div class="detail-header">
+    <div class="detail-fixed-top">
 
-      <div>
-
-        <span class="detail-eyebrow">
-          ${escapeHtml(
-            lead.Lead_id || ""
-          )}
-        </span>
-
-        <h2>
-          ${escapeHtml(
-            lead.Company_name ||
-            "Unnamed company"
-          )}
-        </h2>
-
-      </div>
-
-
-      <div class="detail-stage">
-
-        ${renderCrmBadge(
-          lead.Pipeline_stage,
-          "stage"
-        )}
-
-      </div>
-
-    </div>
-
-
-    ${renderSaveBar()}
-
-
-    <div class="detail-section">
-
-      <h3>Company</h3>
-
-      ${renderEditableField({
-        label: "Website",
-        field: "Website",
-        value: lead.Website,
-        type: "url"
-      })}
-
-      ${renderReadOnlyField(
-        "Clutch",
-        lead.Clutch_url,
-        true
-      )}
-
-      ${renderReadOnlyField(
-        "Location",
-        combineLocation(
-          lead.Location,
-          lead.Country
-        )
-      )}
-
-      ${renderReadOnlyField(
-        "Manpower",
-        lead.Manpower
-      )}
-
-      ${renderReadOnlyField(
-        "Project size",
-        lead.Project_size
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Founder</h3>
-
-      ${renderEditableField({
-        label: "Name",
-        field: "Founder_1_name",
-        value: lead.Founder_1_name
-      })}
-
-      ${renderEditableField({
-        label: "LinkedIn",
-        field: "Founder_1_LinkedIn",
-        value: lead.Founder_1_LinkedIn,
-        type: "url"
-      })}
-
-      ${renderEditableField({
-        label: "Email",
-        field: "Founder_1_email",
-        value: lead.Founder_1_email,
-        type: "email"
-      })}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Research notes</h3>
-
-      ${renderTextBlock(
-        "Targeting",
-        lead.T_issue
-      )}
-
-      ${renderTextBlock(
-        "Offer",
-        lead.O_issue
-      )}
-
-      ${renderTextBlock(
-        "Marketing",
-        lead.M_issue
-      )}
-
-      ${renderTextBlock(
-        "Sales",
-        lead.S_issue
-      )}
-
-      ${renderTextBlock(
-        "Outreach angle",
-        lead.Outreach_angle
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Qualification</h3>
-
-      ${renderReadOnlyField(
-        "ICP fit",
-        lead.ICP_fit_level
-      )}
-
-      ${renderReadOnlyField(
-        "Research status",
-        lead.Research_status
-      )}
-
-      ${
-        isManager
-
-          ? renderResponsibleField(
-              lead
-            )
-
-          : renderReadOnlyField(
-              "Responsible",
-              lead.Responsible_name ||
-              lead.Responsible_email
-            )
-      }
-
-      ${renderReadOnlyField(
-        "Pipeline stage",
-        lead.Pipeline_stage
-      )}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Next action</h3>
-
-      ${renderNextActionTypeField(
-        lead
-      )}
-
-      ${renderEditableField({
-        label: "Due",
-        field: "Next_action_at",
-        value: lead.Next_action_at,
-        type: "datetime-local"
-      })}
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Contact progress</h3>
-
-      <div class="milestone-grid">
-
-        ${renderMilestoneButton(
-          lead,
-          "CR",
-          "Connection request sent",
-          "Connection_request_sent"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "CA",
-          "Connection accepted",
-          "Connection_accepted"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "MS",
-          "Message sent",
-          "Message_sent"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "RT",
-          "Responded",
-          "Response_time"
-        )}
-
-      </div>
-
-      <p class="milestone-help">
-        Double-click a stage to change its status.
-      </p>
-
-    </div>
-
-
-    <div class="detail-section">
-
-      <h3>Deal progress</h3>
-
-      <div class="milestone-grid">
-
-        ${renderMilestoneButton(
-          lead,
-          "REVIEW_CALL_OFFERED",
-          "Review Call Offered",
-          "RC_offered_time",
-          "Review Call Offered"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "REVIEW_CALL_BOOKED",
-          "Review Call Booked",
-          "RC_booked_time",
-          "Review Call Booked"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "GS_SENT",
-          "GS Sent",
-          "GS_sent_time",
-          "GS Sent"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "GS_COMPLETED",
-          "GS Completed",
-          "GS_completed_time",
-          "GS Completed"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "REVIEW_CALL_DONE",
-          "Review Call Done",
-          "RC_done_time",
-          "Review Call Done"
-        )}
-
-        ${renderMilestoneButton(
-          lead,
-          "PROPOSAL_SENT",
-          "Proposal Sent",
-          "Proposal_time",
-          "Proposal Sent"
-        )}
-
-      </div>
-
-      <p class="milestone-help">
-        Double-click a stage to change its status.
-      </p>
-
-    </div>
-
-
-    <div class="detail-section outcome-section">
-
-      <h3>Outcome</h3>
-
-      <div class="outcome-actions">
-
-        ${renderOutcomeButton(
-          "WON",
-          "Won",
-          lead.Won,
-          lead.Won_time
-        )}
-
-        ${renderOutcomeButton(
-          "LOST",
-          "Lost",
-          lead.Lost,
-          lead.Lost_time
-        )}
-
-      </div>
-
-      <p class="milestone-help">
-        Double-click an outcome to confirm it.
-      </p>
-
-    </div>
-
-
-    ${renderOptionalEditableText(
-      "Conclusion",
-      "Conclusion",
-      lead.Conclusion
-    )}
-
-
-    ${renderOptionalEditableText(
-      "Response",
-      "Response content",
-      lead["Response content"]
-    )}
-
-
-    <div class="detail-section archive-section">
-
-      <h3>Record status</h3>
-
-      <div class="archive-row">
+      <div class="detail-header">
 
         <div>
 
-          <strong>
-            ${
-              normalizeCrmBoolean(
-                lead.Is_archived
-              )
-                ? "Archived"
-                : "Active record"
-            }
-          </strong>
+          <span class="detail-eyebrow">
 
-          <p>
-            ${
-              normalizeCrmBoolean(
-                lead.Is_archived
-              )
-                ? "This lead is currently archived."
-                : "Archive only when this record should no longer remain active."
-            }
-          </p>
+            ${escapeHtml(
+              lead.Lead_id || ""
+            )}
+
+          </span>
+
+          <h2>
+
+            ${escapeHtml(
+              lead.Company_name ||
+              "Unnamed company"
+            )}
+
+          </h2>
 
         </div>
 
 
-        <button
-          type="button"
-          class="archive-button"
-          data-archive-toggle
-        >
-          ${
-            normalizeCrmBoolean(
-              lead.Is_archived
-            )
-              ? "Unarchive"
-              : "Archive"
-          }
-        </button>
+        <div class="detail-stage">
+
+          ${renderCrmBadge(
+            lead.Pipeline_stage,
+            "stage"
+          )}
+
+        </div>
 
       </div>
+
+
+      ${renderSaveBar()}
+
+    </div>
+
+
+    <div class="detail-scroll-body">
+
+
+      <div class="detail-section">
+
+        <h3>Company</h3>
+
+        ${renderEditableField({
+
+          label:
+            "Website",
+
+          field:
+            "Website",
+
+          value:
+            lead.Website,
+
+          type:
+            "url"
+        })}
+
+
+        ${renderReadOnlyField(
+          "Clutch",
+          lead.Clutch_url,
+          true
+        )}
+
+
+        ${renderReadOnlyField(
+          "Location",
+          combineLocation(
+            lead.Location,
+            lead.Country
+          )
+        )}
+
+
+        ${renderReadOnlyField(
+          "Manpower",
+          lead.Manpower
+        )}
+
+
+        ${renderReadOnlyField(
+          "Project size",
+          lead.Project_size
+        )}
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Founder</h3>
+
+        ${renderEditableField({
+
+          label:
+            "Name",
+
+          field:
+            "Founder_1_name",
+
+          value:
+            lead.Founder_1_name
+        })}
+
+
+        ${renderEditableField({
+
+          label:
+            "LinkedIn",
+
+          field:
+            "Founder_1_LinkedIn",
+
+          value:
+            lead.Founder_1_LinkedIn,
+
+          type:
+            "url"
+        })}
+
+
+        ${renderEditableField({
+
+          label:
+            "Email",
+
+          field:
+            "Founder_1_email",
+
+          value:
+            lead.Founder_1_email,
+
+          type:
+            "email"
+        })}
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Research notes</h3>
+
+        ${renderTextBlock(
+          "Targeting",
+          lead.T_issue
+        )}
+
+        ${renderTextBlock(
+          "Offer",
+          lead.O_issue
+        )}
+
+        ${renderTextBlock(
+          "Marketing",
+          lead.M_issue
+        )}
+
+        ${renderTextBlock(
+          "Sales",
+          lead.S_issue
+        )}
+
+        ${renderTextBlock(
+          "Outreach angle",
+          lead.Outreach_angle
+        )}
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Qualification</h3>
+
+        ${renderReadOnlyField(
+          "ICP fit",
+          lead.ICP_fit_level
+        )}
+
+
+        ${renderReadOnlyField(
+          "Research status",
+          lead.Research_status
+        )}
+
+
+        ${
+          isManager
+
+            ? renderResponsibleField(
+                lead
+              )
+
+            : renderReadOnlyField(
+                "Responsible",
+                lead.Responsible_name ||
+                lead.Responsible_email
+              )
+        }
+
+
+        ${renderReadOnlyField(
+          "Pipeline stage",
+          lead.Pipeline_stage
+        )}
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Next action</h3>
+
+        ${renderNextActionTypeField(
+          lead
+        )}
+
+
+        ${renderEditableField({
+
+          label:
+            "Due",
+
+          field:
+            "Next_action_at",
+
+          value:
+            lead.Next_action_at,
+
+          type:
+            "datetime-local"
+        })}
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Contact progress</h3>
+
+        <div class="milestone-stack">
+
+          ${renderMilestoneButton(
+            lead,
+            "CR",
+            "Connection request sent",
+            "Connection_request_sent"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "CA",
+            "Connection accepted",
+            "Connection_accepted"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "MS",
+            "Message sent",
+            "Message_sent"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "RT",
+            "Responded",
+            "Response_time"
+          )}
+
+        </div>
+
+        <p class="milestone-help">
+          Double-click a stage to change its status.
+        </p>
+
+      </div>
+
+
+      <div class="detail-section">
+
+        <h3>Deal progress</h3>
+
+        <div class="milestone-stack">
+
+          ${renderMilestoneButton(
+            lead,
+            "REVIEW_CALL_OFFERED",
+            "Review Call Offered",
+            "RC_offered_time",
+            "Review Call Offered"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "REVIEW_CALL_BOOKED",
+            "Review Call Booked",
+            "RC_booked_time",
+            "Review Call Booked"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "GS_SENT",
+            "GS Sent",
+            "GS_sent_time",
+            "GS Sent"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "GS_COMPLETED",
+            "GS Completed",
+            "GS_completed_time",
+            "GS Completed"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "REVIEW_CALL_DONE",
+            "Review Call Done",
+            "RC_done_time",
+            "Review Call Done"
+          )}
+
+          ${renderMilestoneButton(
+            lead,
+            "PROPOSAL_SENT",
+            "Proposal Sent",
+            "Proposal_time",
+            "Proposal Sent"
+          )}
+
+        </div>
+
+        <p class="milestone-help">
+          Double-click a stage to change its status.
+        </p>
+
+      </div>
+
+
+      <div class="detail-section outcome-section">
+
+        <h3>Outcome</h3>
+
+        <div class="outcome-actions">
+
+          ${renderOutcomeButton(
+            "WON",
+            "Won",
+            lead.Won,
+            lead.Won_time
+          )}
+
+          ${renderOutcomeButton(
+            "LOST",
+            "Lost",
+            lead.Lost,
+            lead.Lost_time
+          )}
+
+        </div>
+
+        <p class="milestone-help">
+          Double-click an outcome to confirm it.
+        </p>
+
+      </div>
+
+
+      ${renderOptionalEditableText(
+        "Conclusion",
+        "Conclusion",
+        lead.Conclusion
+      )}
+
+
+      ${renderOptionalEditableText(
+        "Response",
+        "Response content",
+        lead["Response content"]
+      )}
+
+
+      <div class="detail-section archive-section">
+
+        <h3>Record status</h3>
+
+        <div class="archive-row">
+
+          <div>
+
+            <strong>
+
+              ${
+                normalizeCrmBoolean(
+                  lead.Is_archived
+                )
+
+                  ? "Archived"
+
+                  : "Active record"
+              }
+
+            </strong>
+
+            <p>
+
+              ${
+                normalizeCrmBoolean(
+                  lead.Is_archived
+                )
+
+                  ? "This lead is currently archived."
+
+                  : "Archive only when this record should no longer remain active."
+              }
+
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="archive-button"
+            data-archive-toggle
+          >
+
+            ${
+              normalizeCrmBoolean(
+                lead.Is_archived
+              )
+
+                ? "Unarchive"
+
+                : "Archive"
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
 
     </div>
   `;
@@ -1031,7 +1513,7 @@ function renderLeadDetail(
 
 
 /* =========================================================
- * NORMAL EDITABLE FIELD
+ * EDITABLE FIELD
  * ========================================================= */
 
 function renderEditableField({
@@ -1047,13 +1529,17 @@ function renderEditableField({
       field;
 
 
-  const currentValue =
+  const hasPending =
     Object.prototype
       .hasOwnProperty
       .call(
         CRM_STATE.pendingUpdates,
         field
-      )
+      );
+
+
+  const currentValue =
+    hasPending
 
       ? CRM_STATE
           .pendingUpdates[
@@ -1066,7 +1552,8 @@ function renderEditableField({
   if (!editing) {
 
     const display =
-      type === "datetime-local"
+      type ===
+        "datetime-local"
 
         ? formatCrmDateTime(
             currentValue
@@ -1118,15 +1605,20 @@ function renderEditableField({
                     option.value
                   ) ===
                   String(
-                    currentValue || ""
+                    currentValue ||
+                    ""
                   )
+
                     ? "selected"
+
                     : ""
                 }
               >
+
                 ${escapeHtml(
                   option.label
                 )}
+
               </option>
             `
           )
@@ -1134,6 +1626,7 @@ function renderEditableField({
 
       </select>
     `;
+
 
   } else if (
     type === "textarea"
@@ -1152,10 +1645,12 @@ function renderEditableField({
       )}</textarea>
     `;
 
+
   } else {
 
     const inputValue =
-      type === "datetime-local"
+      type ===
+        "datetime-local"
 
         ? formatDateTimeLocalValue(
             currentValue
@@ -1188,7 +1683,11 @@ function renderEditableField({
     <div class="detail-field detail-field-editing">
 
       <span class="detail-label">
-        ${escapeHtml(label)}
+
+        ${escapeHtml(
+          label
+        )}
+
       </span>
 
 
@@ -1213,7 +1712,7 @@ function renderEditableField({
 
 
 /* =========================================================
- * DISPLAY FIELD + PENCIL
+ * DISPLAY EDITABLE FIELD
  * ========================================================= */
 
 function renderDisplayField(
@@ -1251,7 +1750,9 @@ function renderDisplayField(
         target="_blank"
         rel="noopener noreferrer"
       >
+
         ${escapeHtml(clean)}
+
       </a>
     `;
   }
@@ -1262,14 +1763,18 @@ function renderDisplayField(
     <div class="detail-field">
 
       <span class="detail-label">
+
         ${escapeHtml(label)}
+
       </span>
 
 
       <div class="detail-display-editable">
 
         <div class="detail-value">
+
           ${content}
+
         </div>
 
 
@@ -1295,7 +1800,7 @@ function renderDisplayField(
 
 
 /* =========================================================
- * READ-ONLY
+ * READ ONLY
  * ========================================================= */
 
 function renderReadOnlyField(
@@ -1332,7 +1837,9 @@ function renderReadOnlyField(
         target="_blank"
         rel="noopener noreferrer"
       >
+
         ${escapeHtml(clean)}
+
       </a>
     `;
   }
@@ -1343,11 +1850,15 @@ function renderReadOnlyField(
     <div class="detail-field">
 
       <span class="detail-label">
+
         ${escapeHtml(label)}
+
       </span>
 
       <div class="detail-value">
+
         ${content}
+
       </div>
 
     </div>
@@ -1380,6 +1891,50 @@ function renderResponsibleField(
           user.email
       })
     );
+
+
+  const editing =
+    CRM_STATE.editingField ===
+      "Responsible_email";
+
+
+  if (!editing) {
+
+    return `
+
+      <div class="detail-field">
+
+        <span class="detail-label">
+          Responsible
+        </span>
+
+        <div class="detail-display-editable">
+
+          <div class="detail-value">
+
+            ${escapeHtml(
+              lead.Responsible_name ||
+              lead.Responsible_email ||
+              "—"
+            )}
+
+          </div>
+
+
+          <button
+            type="button"
+            class="field-edit-button"
+            data-edit-field="Responsible_email"
+            title="Reassign lead"
+          >
+            ✎
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }
 
 
   return renderEditableField({
@@ -1445,7 +2000,7 @@ function renderNextActionTypeField(
 
 
 /* =========================================================
- * OPTIONAL TEXT SECTIONS
+ * OPTIONAL TEXT
  * ========================================================= */
 
 function renderOptionalEditableText(
@@ -1467,14 +2022,24 @@ function renderOptionalEditableText(
     <div class="detail-section">
 
       <h3>
-        ${escapeHtml(heading)}
+        ${escapeHtml(
+          heading
+        )}
       </h3>
 
       ${renderEditableField({
-        label: heading,
-        field: field,
-        value: value,
-        type: "textarea"
+
+        label:
+          heading,
+
+        field:
+          field,
+
+        value:
+          value,
+
+        type:
+          "textarea"
       })}
 
     </div>
@@ -1498,33 +2063,43 @@ function renderSaveBar() {
 
     <div class="lead-save-bar">
 
-      <span class="lead-save-status">
-
-        ${
-          count === 0
-
-            ? "No unsaved changes"
-
-            : `${count} unsaved change${
-                count === 1
-                  ? ""
-                  : "s"
-              }`
-        }
-
-      </span>
+      <div class="lead-save-spacer">
+      </div>
 
 
-      <button
-        type="button"
-        class="save-lead-button"
-        data-save-lead
-        ${count === 0
-          ? "disabled"
-          : ""}
-      >
-        Save changes
-      </button>
+      <div class="lead-save-content">
+
+        <span class="lead-save-status">
+
+          ${
+            count === 0
+
+              ? "No unsaved changes"
+
+              : `${count} unsaved change${
+                  count === 1
+                    ? ""
+                    : "s"
+                }`
+          }
+
+        </span>
+
+
+        <button
+          type="button"
+          class="save-lead-button"
+          data-save-lead
+          ${
+            count === 0
+              ? "disabled"
+              : ""
+          }
+        >
+          Save changes
+        </button>
+
+      </div>
 
     </div>
   `;
@@ -1532,7 +2107,7 @@ function renderSaveBar() {
 
 
 /* =========================================================
- * MILESTONES
+ * MILESTONE
  * ========================================================= */
 
 function renderMilestoneButton(
@@ -1575,8 +2150,11 @@ function renderMilestoneButton(
     >
 
       <span class="milestone-label">
+
         ${escapeHtml(label)}
+
       </span>
+
 
       ${
         active &&
@@ -1585,11 +2163,13 @@ function renderMilestoneButton(
           ? `
 
             <span class="milestone-time">
+
               ${escapeHtml(
                 formatCrmDateTime(
                   timestamp
                 )
               )}
+
             </span>
           `
 
@@ -1634,6 +2214,7 @@ function renderOutcomeButton(
         ${escapeHtml(label)}
       </span>
 
+
       ${
         active &&
         timestamp
@@ -1641,11 +2222,13 @@ function renderOutcomeButton(
           ? `
 
             <small>
+
               ${escapeHtml(
                 formatCrmDateTime(
                   timestamp
                 )
               )}
+
             </small>
           `
 
@@ -1730,7 +2313,8 @@ function bindLeadDetailEvents() {
       input => {
 
         const eventName =
-          input.tagName === "SELECT"
+          input.tagName ===
+            "SELECT"
 
             ? "change"
 
@@ -1864,16 +2448,16 @@ function handleEditInputChange(
 
 
 /* =========================================================
- * SAVE NORMAL FIELDS
+ * SAVE
  * ========================================================= */
 
 async function saveSelectedLeadChanges() {
 
-  const updates =
-    {
-      ...CRM_STATE
-        .pendingUpdates
-    };
+  const updates = {
+
+    ...CRM_STATE
+      .pendingUpdates
+  };
 
 
   if (
@@ -2001,7 +2585,7 @@ async function toggleSelectedMilestone(
 
 
 /* =========================================================
- * OUTCOME ACTION
+ * OUTCOME
  * ========================================================= */
 
 async function setSelectedOutcome(
@@ -2268,11 +2852,15 @@ function renderTextBlock(
     <div class="detail-text-block">
 
       <span class="detail-label">
+
         ${escapeHtml(label)}
+
       </span>
 
       <p>
+
         ${escapeHtml(value)}
+
       </p>
 
     </div>
@@ -2305,7 +2893,9 @@ function renderEmptyLeadDetail() {
 
     <div class="detail-empty-state">
 
-      <h2>Select a lead</h2>
+      <h2>
+        Select a lead
+      </h2>
 
       <p>
         Click a row to load the complete CRM record.
@@ -2337,7 +2927,9 @@ function renderLeadDetailLoading() {
 
     <div class="detail-empty-state">
 
-      <h2>Loading...</h2>
+      <h2>
+        Loading...
+      </h2>
 
       <p>
         Retrieving lead information.
@@ -2376,7 +2968,9 @@ function renderLeadDetailError(
       </h2>
 
       <p>
+
         ${escapeHtml(message)}
+
       </p>
 
     </div>
@@ -2385,47 +2979,8 @@ function renderLeadDetailError(
 
 
 /* =========================================================
- * TABLE HELPERS
+ * BADGES
  * ========================================================= */
-
-function renderNextAction(
-  lead
-) {
-
-  if (!lead.Next_action_type) {
-
-    return `
-      <span class="muted-text">
-        —
-      </span>
-    `;
-  }
-
-
-  return `
-
-    <div class="next-action-cell">
-
-      <strong>
-        ${escapeHtml(
-          formatCrmLabel(
-            lead.Next_action_type
-          )
-        )}
-      </strong>
-
-      <span>
-        ${escapeHtml(
-          formatCrmDateTime(
-            lead.Next_action_at
-          )
-        )}
-      </span>
-
-    </div>
-  `;
-}
-
 
 function renderCrmBadge(
   value,
@@ -2435,6 +2990,7 @@ function renderCrmBadge(
   if (!value) {
 
     return `
+
       <span class="badge badge-neutral">
         —
       </span>
@@ -2461,9 +3017,11 @@ function renderCrmBadge(
         normalized
       )}"
     >
+
       ${escapeHtml(
         formatCrmLabel(value)
       )}
+
     </span>
   `;
 }
@@ -2547,8 +3105,20 @@ function hideCrmStatus() {
 
 
 /* =========================================================
- * FORMAT
+ * GENERIC HELPERS
  * ========================================================= */
+
+function getElementValue(
+  id
+) {
+
+  return String(
+    document
+      .getElementById(id)
+      ?.value || ""
+  ).trim();
+}
+
 
 function formatCrmLabel(
   value
@@ -2572,26 +3142,54 @@ function formatCrmLabel(
 }
 
 
-function formatCrmDateTime(
+function formatCrmDate(
   value
 ) {
 
-  if (!value) {
+  const timestamp =
+    parseCrmDateTime(
+      value
+    );
+
+
+  if (
+    timestamp === null
+  ) {
+
     return "—";
   }
 
 
-  const date =
-    new Date(value);
+  return new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      year: "numeric",
+      month: "short",
+      day: "2-digit"
+    }
+  ).format(
+    new Date(timestamp)
+  );
+}
+
+
+function formatCrmDateTime(
+  value
+) {
+
+  const timestamp =
+    parseCrmDateTime(
+      value
+    );
 
 
   if (
-    isNaN(
-      date.getTime()
-    )
+    timestamp === null
   ) {
 
-    return String(value);
+    return value
+      ? String(value)
+      : "—";
   }
 
 
@@ -2604,16 +3202,49 @@ function formatCrmDateTime(
       hour: "2-digit",
       minute: "2-digit"
     }
-  ).format(date);
+  ).format(
+    new Date(timestamp)
+  );
 }
 
 
-function formatDateTimeLocalValue(
+function parseCrmDateTime(
   value
 ) {
 
-  if (!value) {
-    return "";
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+
+    return null;
+  }
+
+
+  if (
+    typeof value ===
+      "number"
+  ) {
+
+    if (
+      !Number.isFinite(value)
+    ) {
+
+      return null;
+    }
+
+
+    /*
+     * Already a JS millisecond timestamp.
+     */
+    if (
+      value >
+      100000000000
+    ) {
+
+      return value;
+    }
   }
 
 
@@ -2627,8 +3258,34 @@ function formatDateTimeLocalValue(
     )
   ) {
 
+    return null;
+  }
+
+
+  return date.getTime();
+}
+
+
+function formatDateTimeLocalValue(
+  value
+) {
+
+  const timestamp =
+    parseCrmDateTime(
+      value
+    );
+
+
+  if (
+    timestamp === null
+  ) {
+
     return "";
   }
+
+
+  const date =
+    new Date(timestamp);
 
 
   const pad =
@@ -2641,20 +3298,25 @@ function formatDateTimeLocalValue(
 
 
   return (
+
     date.getFullYear() +
     "-" +
+
     pad(
       date.getMonth() + 1
     ) +
     "-" +
+
     pad(
       date.getDate()
     ) +
     "T" +
+
     pad(
       date.getHours()
     ) +
     ":" +
+
     pad(
       date.getMinutes()
     )
@@ -2710,7 +3372,10 @@ function normalizeCrmBoolean(
   value
 ) {
 
-  if (value === true) {
+  if (
+    value === true
+  ) {
+
     return true;
   }
 
@@ -2767,5 +3432,7 @@ function escapeHtmlAttribute(
   value
 ) {
 
-  return escapeHtml(value);
+  return escapeHtml(
+    value
+  );
 }
