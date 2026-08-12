@@ -2258,34 +2258,43 @@ a:hover {
     1
     auto;
 
-  min-width: 0;
+  min-width:
+    0;
 
-  min-height: 0;
+  min-height:
+    0;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: stretch;
+  align-items:
+    stretch;
 
-  gap: 12px;
+  gap:
+    12px;
 
-  overflow-x: scroll;
+  overflow-x:
+    auto;
 
-  overflow-y: hidden;
+  overflow-y:
+    hidden;
 
   padding:
     2px
     2px
     14px;
 
-  scrollbar-gutter: stable;
+  scrollbar-gutter:
+    stable;
 
-  scroll-behavior: smooth;
+  overscroll-behavior-x:
+    contain;
 
-  overscroll-behavior-x: contain;
+  touch-action:
+    auto;
 
-  touch-action: pan-x pan-y;
-
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 
