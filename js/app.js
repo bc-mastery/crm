@@ -1,6 +1,8 @@
 /**
  * Business Canvas CRM
  * Leads page controller
+ *
+ * Uses shared CRM browser cache.
  */
 
 
@@ -115,25 +117,92 @@ async function initializeCrmApp() {
 
   bindCrmUiEvents();
 
+  bindCrmCacheEvents();
 
-  try {
+
+  /*
+   * Metadata and Lead database can load
+   * independently and in parallel.
+   */
+  const [
+    metaResult
+  ] =
+    await Promise.allSettled([
+
+      getCachedCrmMeta(),
+
+      loadCrmLeads()
+    ]);
+
+
+  if (
+    metaResult.status ===
+      "fulfilled"
+  ) {
 
     CRM_STATE.meta =
-      await getCrmMeta();
+      metaResult.value;
 
-  } catch (error) {
+
+    /*
+     * Responsible filter may have rendered
+     * before metadata arrived.
+     */
+    populateResponsibleFilter();
+
+  } else {
 
     console.error(
       "Could not load CRM metadata.",
-      error
+      metaResult.reason
     );
   }
 
 
-  await loadCrmLeads();
-
-
   await openLeadFromUrl();
+}
+
+
+/* =========================================================
+ * CACHE EVENTS
+ * ========================================================= */
+
+function bindCrmCacheEvents() {
+
+  /*
+   * When cache.js refreshes the database
+   * silently in the background, update the
+   * visible page without another API call.
+   */
+  window.addEventListener(
+    "crm-leads-updated",
+    event => {
+
+      const leads =
+        event.detail
+          ?.leads;
+
+
+      if (
+        !Array.isArray(leads)
+      ) {
+
+        return;
+      }
+
+
+      CRM_STATE.leads =
+        leads;
+
+
+      populateAllFilters(
+        leads
+      );
+
+
+      applyLeadFilters();
+    }
+  );
 }
 
 
@@ -223,17 +292,53 @@ async function openLeadFromUrl() {
  * LOAD LEADS
  * ========================================================= */
 
-async function loadCrmLeads() {
+async function loadCrmLeads(
+  options = {}
+) {
 
-  showCrmStatus(
-    "Loading leads..."
-  );
+  const forceRefresh =
+    options.forceRefresh ===
+      true;
+
+
+  /*
+   * Check whether browser cache already
+   * contains a Lead database.
+   */
+  const existingCache =
+    getStoredCrmLeads();
+
+
+  /*
+   * Only show "Loading leads..." when
+   * we genuinely have nothing to render.
+   */
+  if (
+    !existingCache ||
+    forceRefresh
+  ) {
+
+    showCrmStatus(
+      "Loading leads..."
+    );
+
+  } else {
+
+    hideCrmStatus();
+  }
 
 
   try {
 
     const leads =
-      await getCrmLeads();
+      await getCachedCrmLeads({
+
+        forceRefresh:
+          forceRefresh,
+
+        backgroundRefresh:
+          !forceRefresh
+      });
 
 
     CRM_STATE.leads =
@@ -254,6 +359,35 @@ async function loadCrmLeads() {
   } catch (error) {
 
     console.error(error);
+
+
+    /*
+     * If we already had cached data,
+     * keep using it even if refresh failed.
+     */
+    if (
+      existingCache &&
+      Array.isArray(
+        existingCache.value
+      )
+    ) {
+
+      CRM_STATE.leads =
+        existingCache.value;
+
+
+      populateAllFilters(
+        existingCache.value
+      );
+
+
+      applyLeadFilters();
+
+
+      hideCrmStatus();
+
+      return;
+    }
 
 
     showCrmStatus(
@@ -329,10 +463,17 @@ function bindCrmUiEvents() {
         renderEmptyLeadDetail();
 
 
+        /*
+         * Explicit Refresh means:
+         * bypass cache and ask API for fresh data.
+         */
         try {
 
           CRM_STATE.meta =
-            await getCrmMeta();
+            await getCachedCrmMeta({
+              forceRefresh:
+                true
+            });
 
         } catch (error) {
 
@@ -340,7 +481,10 @@ function bindCrmUiEvents() {
         }
 
 
-        await loadCrmLeads();
+        await loadCrmLeads({
+          forceRefresh:
+            true
+        });
       }
     );
 }
@@ -1115,15 +1259,56 @@ async function selectCrmLead(
   );
 
 
-  renderLeadDetailLoading();
+  /*
+   * If this Lead has already been loaded,
+   * render it immediately.
+   */
+  const cachedRecord =
+    getStoredCrmLead(
+      leadId
+    );
+
+
+  if (
+    cachedRecord &&
+    cachedRecord.value
+  ) {
+
+    CRM_STATE.selectedLead =
+      cachedRecord.value;
+
+
+    renderLeadDetail(
+      cachedRecord.value
+    );
+
+  } else {
+
+    renderLeadDetailLoading();
+  }
 
 
   try {
 
+    /*
+     * Fresh cached record:
+     * resolves immediately.
+     *
+     * Stale / missing record:
+     * fetches API and updates cache.
+     */
     const lead =
-      await getCrmLead(
+      await getCachedCrmLead(
         leadId
       );
+
+
+    if (!lead) {
+
+      throw new Error(
+        "Lead record was not returned."
+      );
+    }
 
 
     CRM_STATE.selectedLead =
@@ -1140,9 +1325,19 @@ async function selectCrmLead(
     console.error(error);
 
 
-    renderLeadDetailError(
-      error.message
-    );
+    /*
+     * If stale cache was already rendered,
+     * don't destroy usable information.
+     */
+    if (
+      !cachedRecord ||
+      !cachedRecord.value
+    ) {
+
+      renderLeadDetailError(
+        error.message
+      );
+    }
   }
 }
 
@@ -1155,8 +1350,21 @@ function acceptUpdatedLead(
   updatedLead
 ) {
 
+  if (!updatedLead) {
+    return;
+  }
+
+
   CRM_STATE.selectedLead =
     updatedLead;
+
+
+  /*
+   * Synchronize browser cache immediately.
+   */
+  acceptCrmLeadIntoCache(
+    updatedLead
+  );
 
 
   const index =
