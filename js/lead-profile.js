@@ -8,10 +8,13 @@
  *   -> zero API calls
  *
  * /lead?lead=LEAD-xxxxx
- *   -> load selected Lead + metadata in parallel
+ *   -> render cached Lead immediately if available
+ *   -> otherwise fetch selected Lead
+ *   -> metadata loads in parallel / from cache
  *
  * Search
- *   -> load Lead list lazily on first search only
+ *   -> use cached Lead list when available
+ *   -> otherwise load Lead list once
  */
 
 
@@ -86,23 +89,14 @@ async function initializeLeadProfile() {
   bindLeadProfileEvents();
 
 
-  /*
-   * IMPORTANT:
-   *
-   * Do NOT load:
-   * - metadata
-   * - lead list
-   *
-   * unless they are actually needed.
-   */
   const leadId =
     getLeadIdFromProfileUrl();
 
 
   /*
-   * Empty Lead Profile page.
+   * Empty Lead Profile page:
    *
-   * Zero API calls.
+   * zero API calls.
    */
   if (!leadId) {
 
@@ -114,12 +108,6 @@ async function initializeLeadProfile() {
 
   /*
    * Direct Lead Profile opening.
-   *
-   * Load only:
-   * - requested Lead
-   * - metadata needed by editable fields
-   *
-   * Both requests happen in parallel.
    */
   await selectLeadProfileLead(
     leadId
@@ -313,10 +301,6 @@ async function ensureLeadProfileMetaLoaded() {
   }
 
 
-  /*
-   * Reuse the same request if another
-   * operation already started it.
-   */
   if (
     LEAD_PROFILE_STATE
       .metaLoadingPromise
@@ -329,7 +313,7 @@ async function ensureLeadProfileMetaLoaded() {
 
   LEAD_PROFILE_STATE
     .metaLoadingPromise =
-      getCrmMeta()
+      getCachedCrmMeta()
         .then(
           meta => {
 
@@ -381,10 +365,6 @@ async function ensureLeadListLoaded() {
   }
 
 
-  /*
-   * If a search request is already running,
-   * reuse it instead of creating another.
-   */
   if (
     LEAD_PROFILE_STATE
       .leadsLoadingPromise
@@ -395,9 +375,13 @@ async function ensureLeadListLoaded() {
   }
 
 
+  /*
+   * If Leads/Pipeline already cached the
+   * database, this resolves immediately.
+   */
   LEAD_PROFILE_STATE
     .leadsLoadingPromise =
-      getCrmLeads()
+      getCachedCrmLeads()
         .then(
           leads => {
 
@@ -474,10 +458,6 @@ async function handleLeadProfileSearch() {
   }
 
 
-  /*
-   * Lead database is loaded only when
-   * autocomplete is actually used.
-   */
   try {
 
     await ensureLeadListLoaded();
@@ -493,10 +473,6 @@ async function handleLeadProfileSearch() {
   }
 
 
-  /*
-   * The user may have changed the text
-   * while the list was loading.
-   */
   const currentQuery =
     String(
       input.value || ""
@@ -729,6 +705,34 @@ function renderLeadProfileSearchResults(
       button => {
 
         button.addEventListener(
+          "mouseenter",
+          () => {
+
+            const leadId =
+              button.dataset
+                .leadProfileResult;
+
+
+            if (!leadId) {
+              return;
+            }
+
+
+            /*
+             * Prefetch search result before
+             * the user clicks it.
+             */
+            getCachedCrmLead(
+              leadId
+            )
+              .catch(
+                () => {}
+              );
+          }
+        );
+
+
+        button.addEventListener(
           "click",
           async () => {
 
@@ -822,10 +826,6 @@ async function selectLeadProfileLead(
     leadId;
 
 
-  LEAD_PROFILE_STATE.selectedLead =
-    null;
-
-
   LEAD_PROFILE_STATE.pendingUpdates =
     {};
 
@@ -834,31 +834,57 @@ async function selectLeadProfileLead(
     null;
 
 
-  renderLeadProfileLoading();
+  /*
+   * Check full Lead cache first.
+   */
+  const cachedRecord =
+    getStoredCrmLead(
+      leadId
+    );
+
+
+  if (
+    cachedRecord &&
+    cachedRecord.value
+  ) {
+
+    /*
+     * This is the fast path.
+     *
+     * Pipeline hover/idle prefetch means
+     * the complete Lead may already exist.
+     */
+    LEAD_PROFILE_STATE.selectedLead =
+      cachedRecord.value;
+
+
+    applyLoadedLeadProfile(
+      cachedRecord.value
+    );
+
+  } else {
+
+    LEAD_PROFILE_STATE.selectedLead =
+      null;
+
+
+    renderLeadProfileLoading();
+  }
 
 
   try {
 
     /*
-     * Load the selected Lead and metadata
-     * simultaneously.
+     * Lead + metadata load in parallel.
      *
-     * This removes the old:
-     *
-     * getCrmMeta()
-     *   ↓
-     * getCrmLeads()
-     *   ↓
-     * getCrmLead()
-     *
-     * sequential chain.
+     * Cached Lead resolves immediately.
      */
     const [
       lead
     ] =
       await Promise.all([
 
-        getCrmLead(
+        getCachedCrmLead(
           leadId
         ),
 
@@ -878,35 +904,7 @@ async function selectLeadProfileLead(
       lead;
 
 
-    updateLeadProfileUrl(
-      leadId
-    );
-
-
-    document.title =
-      `${lead.Company_name || leadId} — Business Canvas CRM`;
-
-
-    const searchInput =
-      document.getElementById(
-        "leadProfileSearchInput"
-      );
-
-
-    if (searchInput) {
-
-      searchInput.value =
-        lead.Company_name ||
-        "";
-    }
-
-
-    renderLeadDetail(
-      lead
-    );
-
-
-    renderActivityPlaceholder(
+    applyLoadedLeadProfile(
       lead
     );
 
@@ -919,9 +917,20 @@ async function selectLeadProfileLead(
     console.error(error);
 
 
-    renderLeadProfileError(
-      error.message
-    );
+    /*
+     * If cached content was already shown,
+     * keep it rather than replacing it
+     * with an error screen.
+     */
+    if (
+      !cachedRecord ||
+      !cachedRecord.value
+    ) {
+
+      renderLeadProfileError(
+        error.message
+      );
+    }
 
 
     showLeadProfileStatus(
@@ -930,6 +939,55 @@ async function selectLeadProfileLead(
       "error"
     );
   }
+}
+
+
+/* =========================================================
+ * APPLY LOADED PROFILE
+ * ========================================================= */
+
+function applyLoadedLeadProfile(
+  lead
+) {
+
+  if (!lead) {
+    return;
+  }
+
+
+  updateLeadProfileUrl(
+    lead.Lead_id
+  );
+
+
+  document.title =
+    `${lead.Company_name ||
+      lead.Lead_id ||
+      "Lead Profile"} — Business Canvas CRM`;
+
+
+  const searchInput =
+    document.getElementById(
+      "leadProfileSearchInput"
+    );
+
+
+  if (searchInput) {
+
+    searchInput.value =
+      lead.Company_name ||
+      "";
+  }
+
+
+  renderLeadDetail(
+    lead
+  );
+
+
+  renderActivityPlaceholder(
+    lead
+  );
 }
 
 
@@ -955,8 +1013,15 @@ function acceptLeadProfileUpdate(
 
 
   /*
-   * Update search cache only if that cache
-   * has actually been loaded.
+   * Synchronize shared browser cache.
+   */
+  acceptCrmLeadIntoCache(
+    updatedLead
+  );
+
+
+  /*
+   * Update local search cache only if loaded.
    */
   if (
     LEAD_PROFILE_STATE.leadsLoaded
