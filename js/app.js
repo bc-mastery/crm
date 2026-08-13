@@ -27,6 +27,57 @@ let CRM_STATE = {
 
 
 /* =========================================================
+ * SHARED LEAD DETAIL CONFIG
+ * ========================================================= */
+
+configureLeadDetail({
+
+  panelId:
+    "leadDetail",
+
+
+  getState:
+    () =>
+      CRM_STATE,
+
+
+  onLeadUpdated:
+    updatedLead =>
+      acceptUpdatedLead(
+        updatedLead
+      ),
+
+
+  showStatus:
+    (message, type) =>
+      showCrmStatus(
+        message,
+        type
+      ),
+
+
+  openProfile:
+    lead => {
+
+      if (
+        !lead ||
+        !lead.Lead_id
+      ) {
+
+        return;
+      }
+
+
+      window.location.href =
+        `lead.html?lead=${encodeURIComponent(
+          lead.Lead_id
+        )}`;
+    }
+});
+
+
+
+/* =========================================================
  * LAST ACTION TIMESTAMP FIELDS
  * ========================================================= */
 
