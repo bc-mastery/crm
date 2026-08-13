@@ -4293,5 +4293,83 @@ a:hover {
 }
 
 
+/* =========================================================
+   LEAD PROFILE EMPTY STATE ALIGNMENT
+========================================================= */
+
+#leadProfileDetail
+.lead-profile-loading-state,
+#leadProfileDetail
+.detail-empty-state {
+  width:
+    100%;
+
+  box-sizing:
+    border-box;
+
+  padding:
+    28px
+    22px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    flex-start;
+
+  text-align:
+    left;
+}
+
+
+#leadProfileDetail
+.lead-profile-loading-state
+.detail-empty-icon,
+#leadProfileDetail
+.detail-empty-state
+.detail-empty-icon {
+  margin:
+    0
+    0
+    10px;
+}
+
+
+#leadProfileDetail
+.lead-profile-loading-state
+h2,
+#leadProfileDetail
+.detail-empty-state
+h2 {
+  margin:
+    0
+    0
+    8px;
+
+  text-align:
+    left;
+}
+
+
+#leadProfileDetail
+.lead-profile-loading-state
+p,
+#leadProfileDetail
+.detail-empty-state
+p {
+  margin:
+    0;
+
+  text-align:
+    left;
+}
+
+
 
 
