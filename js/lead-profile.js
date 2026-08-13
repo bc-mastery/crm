@@ -1,6 +1,17 @@
 /**
  * Business Canvas CRM
  * Lead Profile page controller
+ *
+ * Optimized loading:
+ *
+ * /lead
+ *   -> zero API calls
+ *
+ * /lead?lead=LEAD-xxxxx
+ *   -> load selected Lead + metadata in parallel
+ *
+ * Search
+ *   -> load Lead list lazily on first search only
  */
 
 
@@ -12,10 +23,14 @@ let LEAD_PROFILE_STATE = {
 
   leads: [],
 
+  leadsLoaded: false,
+  leadsLoadingPromise: null,
+
   selectedLeadId: null,
   selectedLead: null,
 
   meta: null,
+  metaLoadingPromise: null,
 
   pendingUpdates: {},
 
@@ -71,59 +86,44 @@ async function initializeLeadProfile() {
   bindLeadProfileEvents();
 
 
-  showLeadProfileStatus(
-    "Loading leads..."
-  );
+  /*
+   * IMPORTANT:
+   *
+   * Do NOT load:
+   * - metadata
+   * - lead list
+   *
+   * unless they are actually needed.
+   */
+  const leadId =
+    getLeadIdFromProfileUrl();
 
 
-  try {
+  /*
+   * Empty Lead Profile page.
+   *
+   * Zero API calls.
+   */
+  if (!leadId) {
 
-    LEAD_PROFILE_STATE.meta =
-      await getCrmMeta();
-
-  } catch (error) {
-
-    console.error(
-      "Could not load CRM metadata.",
-      error
-    );
-  }
-
-
-  try {
-
-    LEAD_PROFILE_STATE.leads =
-      await getCrmLeads();
-
-  } catch (error) {
-
-    console.error(error);
-
-
-    showLeadProfileStatus(
-      "Could not load CRM leads: " +
-      error.message,
-      "error"
-    );
-
+    hideLeadProfileStatus();
 
     return;
   }
 
 
-  hideLeadProfileStatus();
-
-
-  const leadId =
-    getLeadIdFromProfileUrl();
-
-
-  if (leadId) {
-
-    await selectLeadProfileLead(
-      leadId
-    );
-  }
+  /*
+   * Direct Lead Profile opening.
+   *
+   * Load only:
+   * - requested Lead
+   * - metadata needed by editable fields
+   *
+   * Both requests happen in parallel.
+   */
+  await selectLeadProfileLead(
+    leadId
+  );
 }
 
 
@@ -149,13 +149,13 @@ function bindLeadProfileEvents() {
   searchInput
     ?.addEventListener(
       "focus",
-      () => {
+      async () => {
 
         if (
           searchInput.value.trim()
         ) {
 
-          handleLeadProfileSearch();
+          await handleLeadProfileSearch();
         }
       }
     );
@@ -185,6 +185,9 @@ function bindLeadProfileEvents() {
         if (!query) {
           return;
         }
+
+
+        await ensureLeadListLoaded();
 
 
         const exactOrFirst =
@@ -297,10 +300,142 @@ function updateLeadProfileUrl(
 
 
 /* =========================================================
+ * LAZY METADATA
+ * ========================================================= */
+
+async function ensureLeadProfileMetaLoaded() {
+
+  if (
+    LEAD_PROFILE_STATE.meta
+  ) {
+
+    return LEAD_PROFILE_STATE.meta;
+  }
+
+
+  /*
+   * Reuse the same request if another
+   * operation already started it.
+   */
+  if (
+    LEAD_PROFILE_STATE
+      .metaLoadingPromise
+  ) {
+
+    return LEAD_PROFILE_STATE
+      .metaLoadingPromise;
+  }
+
+
+  LEAD_PROFILE_STATE
+    .metaLoadingPromise =
+      getCrmMeta()
+        .then(
+          meta => {
+
+            LEAD_PROFILE_STATE.meta =
+              meta;
+
+
+            return meta;
+          }
+        )
+        .catch(
+          error => {
+
+            console.error(
+              "Could not load CRM metadata.",
+              error
+            );
+
+
+            return null;
+          }
+        )
+        .finally(
+          () => {
+
+            LEAD_PROFILE_STATE
+              .metaLoadingPromise =
+                null;
+          }
+        );
+
+
+  return LEAD_PROFILE_STATE
+    .metaLoadingPromise;
+}
+
+
+/* =========================================================
+ * LAZY LEAD LIST
+ * ========================================================= */
+
+async function ensureLeadListLoaded() {
+
+  if (
+    LEAD_PROFILE_STATE.leadsLoaded
+  ) {
+
+    return LEAD_PROFILE_STATE.leads;
+  }
+
+
+  /*
+   * If a search request is already running,
+   * reuse it instead of creating another.
+   */
+  if (
+    LEAD_PROFILE_STATE
+      .leadsLoadingPromise
+  ) {
+
+    return LEAD_PROFILE_STATE
+      .leadsLoadingPromise;
+  }
+
+
+  LEAD_PROFILE_STATE
+    .leadsLoadingPromise =
+      getCrmLeads()
+        .then(
+          leads => {
+
+            LEAD_PROFILE_STATE.leads =
+              Array.isArray(leads)
+                ? leads
+                : [];
+
+
+            LEAD_PROFILE_STATE
+              .leadsLoaded =
+                true;
+
+
+            return LEAD_PROFILE_STATE
+              .leads;
+          }
+        )
+        .finally(
+          () => {
+
+            LEAD_PROFILE_STATE
+              .leadsLoadingPromise =
+                null;
+          }
+        );
+
+
+  return LEAD_PROFILE_STATE
+    .leadsLoadingPromise;
+}
+
+
+/* =========================================================
  * SEARCH
  * ========================================================= */
 
-function handleLeadProfileSearch() {
+async function handleLeadProfileSearch() {
 
   const input =
     document.getElementById(
@@ -339,9 +474,48 @@ function handleLeadProfileSearch() {
   }
 
 
+  /*
+   * Lead database is loaded only when
+   * autocomplete is actually used.
+   */
+  try {
+
+    await ensureLeadListLoaded();
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    renderLeadProfileSearchLoadError();
+
+    return;
+  }
+
+
+  /*
+   * The user may have changed the text
+   * while the list was loading.
+   */
+  const currentQuery =
+    String(
+      input.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (!currentQuery) {
+
+    hideLeadProfileSearchResults();
+
+    return;
+  }
+
+
   const matches =
     getLeadProfileMatches(
-      query
+      currentQuery
     )
       .slice(
         0,
@@ -351,7 +525,7 @@ function handleLeadProfileSearch() {
 
   renderLeadProfileSearchResults(
     matches,
-    query
+    currentQuery
   );
 }
 
@@ -581,6 +755,34 @@ function renderLeadProfileSearchResults(
 }
 
 
+function renderLeadProfileSearchLoadError() {
+
+  const resultsPanel =
+    document.getElementById(
+      "leadProfileSearchResults"
+    );
+
+
+  if (!resultsPanel) {
+    return;
+  }
+
+
+  resultsPanel.hidden =
+    false;
+
+
+  resultsPanel.innerHTML = `
+
+    <div class="lead-profile-search-empty">
+
+      Could not load leads.
+
+    </div>
+  `;
+}
+
+
 function hideLeadProfileSearchResults() {
 
   const resultsPanel =
@@ -616,34 +818,6 @@ async function selectLeadProfileLead(
   }
 
 
-  const leadSummary =
-    LEAD_PROFILE_STATE.leads
-      .find(
-        lead =>
-          String(
-            lead.Lead_id || ""
-          ) ===
-          String(leadId)
-      );
-
-
-  if (!leadSummary) {
-
-    renderLeadProfileError(
-      "The requested lead is not available."
-    );
-
-
-    showLeadProfileStatus(
-      "The requested lead is not available.",
-      "error"
-    );
-
-
-    return;
-  }
-
-
   LEAD_PROFILE_STATE.selectedLeadId =
     leadId;
 
@@ -665,10 +839,31 @@ async function selectLeadProfileLead(
 
   try {
 
-    const lead =
-      await getCrmLead(
-        leadId
-      );
+    /*
+     * Load the selected Lead and metadata
+     * simultaneously.
+     *
+     * This removes the old:
+     *
+     * getCrmMeta()
+     *   ↓
+     * getCrmLeads()
+     *   ↓
+     * getCrmLead()
+     *
+     * sequential chain.
+     */
+    const [
+      lead
+    ] =
+      await Promise.all([
+
+        getCrmLead(
+          leadId
+        ),
+
+        ensureLeadProfileMetaLoaded()
+      ]);
 
 
     if (!lead) {
@@ -759,29 +954,44 @@ function acceptLeadProfileUpdate(
     updatedLead.Lead_id;
 
 
-  const index =
-    LEAD_PROFILE_STATE.leads
-      .findIndex(
-        lead =>
-          lead.Lead_id ===
-          updatedLead.Lead_id
-      );
-
-
+  /*
+   * Update search cache only if that cache
+   * has actually been loaded.
+   */
   if (
-    index !== -1
+    LEAD_PROFILE_STATE.leadsLoaded
   ) {
 
-    LEAD_PROFILE_STATE.leads[
-      index
-    ] = {
+    const index =
+      LEAD_PROFILE_STATE.leads
+        .findIndex(
+          lead =>
+            lead.Lead_id ===
+            updatedLead.Lead_id
+        );
 
-      ...LEAD_PROFILE_STATE.leads[
+
+    if (
+      index !== -1
+    ) {
+
+      LEAD_PROFILE_STATE.leads[
         index
-      ],
+      ] = {
 
-      ...updatedLead
-    };
+        ...LEAD_PROFILE_STATE.leads[
+          index
+        ],
+
+        ...updatedLead
+      };
+
+    } else {
+
+      LEAD_PROFILE_STATE.leads.push(
+        updatedLead
+      );
+    }
   }
 
 
