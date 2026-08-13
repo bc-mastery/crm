@@ -212,12 +212,32 @@ function renderLeadDetail(
 
           <h2>
 
-            ${escapeHtml(
-              lead.Company_name ||
-              "Unnamed company"
-            )}
+  ${
+    headerClickable
 
-          </h2>
+      ? `
+        <a
+          href="lead.html?lead=${encodeURIComponent(
+            lead.Lead_id || ""
+          )}"
+          class="lead-profile-link"
+          title="Open Lead Profile"
+        >
+          ${escapeHtml(
+            lead.Company_name ||
+            "Unnamed company"
+          )}
+          <span class="lead-profile-link-arrow">↗</span>
+        </a>
+      `
+
+      : escapeHtml(
+          lead.Company_name ||
+          "Unnamed company"
+        )
+  }
+
+</h2>
 
         </div>
 
