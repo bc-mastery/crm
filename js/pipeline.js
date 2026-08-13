@@ -1,6 +1,8 @@
 /**
  * Business Canvas CRM
  * Pipeline view
+ *
+ * Uses shared CRM browser cache.
  */
 
 
@@ -71,6 +73,14 @@ const PIPELINE_LAST_ACTION_FIELDS = [
 
 
 /* =========================================================
+ * PREFETCH CONFIG
+ * ========================================================= */
+
+const PIPELINE_PREFETCH_LIMIT =
+  12;
+
+
+/* =========================================================
  * INIT
  * ========================================================= */
 
@@ -84,22 +94,87 @@ async function initializePipeline() {
 
   bindPipelineEvents();
 
+  bindPipelineCacheEvents();
 
-  try {
+
+  /*
+   * Metadata and Lead database load
+   * independently and in parallel.
+   */
+  const [
+    metaResult
+  ] =
+    await Promise.allSettled([
+
+      getCachedCrmMeta(),
+
+      loadPipelineLeads()
+    ]);
+
+
+  if (
+    metaResult.status ===
+      "fulfilled"
+  ) {
 
     PIPELINE_STATE.meta =
-      await getCrmMeta();
+      metaResult.value;
 
-  } catch (error) {
+
+    populatePipelineResponsibleFilter();
+
+  } else {
 
     console.error(
       "Could not load CRM metadata.",
-      error
+      metaResult.reason
     );
   }
+}
 
 
-  await loadPipelineLeads();
+/* =========================================================
+ * CACHE EVENTS
+ * ========================================================= */
+
+function bindPipelineCacheEvents() {
+
+  /*
+   * cache.js can refresh the Lead database
+   * quietly in the background.
+   *
+   * When that happens, refresh the Pipeline
+   * without another API request.
+   */
+  window.addEventListener(
+    "crm-leads-updated",
+    event => {
+
+      const leads =
+        event.detail
+          ?.leads;
+
+
+      if (
+        !Array.isArray(leads)
+      ) {
+
+        return;
+      }
+
+
+      PIPELINE_STATE.leads =
+        leads;
+
+
+      populatePipelineFilters(
+        leads
+      );
+
+
+      applyPipelineFilters();
+    }
+  );
 }
 
 
@@ -107,17 +182,49 @@ async function initializePipeline() {
  * LOAD
  * ========================================================= */
 
-async function loadPipelineLeads() {
+async function loadPipelineLeads(
+  options = {}
+) {
 
-  showPipelineStatus(
-    "Loading pipeline..."
-  );
+  const forceRefresh =
+    options.forceRefresh ===
+      true;
+
+
+  const existingCache =
+    getStoredCrmLeads();
+
+
+  /*
+   * Only show loading message when there
+   * is genuinely nothing available locally.
+   */
+  if (
+    !existingCache ||
+    forceRefresh
+  ) {
+
+    showPipelineStatus(
+      "Loading pipeline..."
+    );
+
+  } else {
+
+    hidePipelineStatus();
+  }
 
 
   try {
 
     const leads =
-      await getCrmLeads();
+      await getCachedCrmLeads({
+
+        forceRefresh:
+          forceRefresh,
+
+        backgroundRefresh:
+          !forceRefresh
+      });
 
 
     PIPELINE_STATE.leads =
@@ -138,6 +245,35 @@ async function loadPipelineLeads() {
   } catch (error) {
 
     console.error(error);
+
+
+    /*
+     * If local cache exists, continue using it
+     * even if a background refresh failed.
+     */
+    if (
+      existingCache &&
+      Array.isArray(
+        existingCache.value
+      )
+    ) {
+
+      PIPELINE_STATE.leads =
+        existingCache.value;
+
+
+      populatePipelineFilters(
+        existingCache.value
+      );
+
+
+      applyPipelineFilters();
+
+
+      hidePipelineStatus();
+
+      return;
+    }
 
 
     showPipelineStatus(
@@ -192,10 +328,16 @@ function bindPipelineEvents() {
       "click",
       async () => {
 
+        /*
+         * Explicit Refresh bypasses cache.
+         */
         try {
 
           PIPELINE_STATE.meta =
-            await getCrmMeta();
+            await getCachedCrmMeta({
+              forceRefresh:
+                true
+            });
 
         } catch (error) {
 
@@ -203,7 +345,10 @@ function bindPipelineEvents() {
         }
 
 
-        await loadPipelineLeads();
+        await loadPipelineLeads({
+          forceRefresh:
+            true
+        });
       }
     );
 
@@ -347,10 +492,6 @@ function bindPipelineEvents() {
           );
 
 
-        /*
-         * True horizontal touchpad gesture:
-         * scroll the Pipeline horizontally.
-         */
         if (
           Math.abs(
             event.deltaX
@@ -369,11 +510,6 @@ function bindPipelineEvents() {
         }
 
 
-        /*
-         * If pointer is over a stage that actually
-         * has vertical overflow, preserve normal
-         * vertical scrolling inside that stage.
-         */
         if (laneBody) {
 
           const canScrollVertically =
@@ -388,11 +524,6 @@ function bindPipelineEvents() {
         }
 
 
-        /*
-         * Everywhere else in the light Pipeline area,
-         * vertical wheel/touchpad movement becomes
-         * horizontal Pipeline scrolling.
-         */
         if (
           event.deltaY !== 0
         ) {
@@ -748,6 +879,14 @@ function renderPipelineBoard(
   }
 
 
+  /*
+   * Preserve horizontal board position when
+   * cache refreshes or filters re-render.
+   */
+  const previousScrollLeft =
+    board.scrollLeft;
+
+
   board.innerHTML =
     "";
 
@@ -776,6 +915,17 @@ function renderPipelineBoard(
         );
       }
     );
+
+
+  board.scrollLeft =
+    previousScrollLeft;
+
+
+  /*
+   * Once Pipeline is visible, quietly
+   * preload a small number of Lead records.
+   */
+  schedulePipelinePrefetch();
 }
 
 
@@ -919,6 +1069,9 @@ function createPipelineLane(
     .forEach(
       card => {
 
+        /*
+         * Click opens Lead Profile.
+         */
         card.addEventListener(
           "click",
           () => {
@@ -930,6 +1083,9 @@ function createPipelineLane(
         );
 
 
+        /*
+         * Keyboard navigation.
+         */
         card.addEventListener(
           "keydown",
           event => {
@@ -951,11 +1107,200 @@ function createPipelineLane(
             );
           }
         );
+
+
+        /*
+         * Hover / focus prefetch.
+         *
+         * Often gives enough time for the full
+         * Lead to enter cache before the user
+         * actually clicks.
+         */
+        card.addEventListener(
+          "mouseenter",
+          () => {
+
+            prefetchPipelineLead(
+              card.dataset.pipelineLead
+            );
+          }
+        );
+
+
+        card.addEventListener(
+          "focus",
+          () => {
+
+            prefetchPipelineLead(
+              card.dataset.pipelineLead
+            );
+          }
+        );
       }
     );
 
 
   return lane;
+}
+
+
+/* =========================================================
+ * PREFETCH
+ * ========================================================= */
+
+function prefetchPipelineLead(
+  leadId
+) {
+
+  if (!leadId) {
+    return;
+  }
+
+
+  /*
+   * If already cached, this resolves
+   * immediately and costs no API call.
+   */
+  getCachedCrmLead(
+    leadId
+  )
+    .catch(
+      error => {
+
+        /*
+         * Prefetch failure should never
+         * interrupt Pipeline usage.
+         */
+        console.warn(
+          "Lead prefetch failed:",
+          leadId,
+          error
+        );
+      }
+    );
+}
+
+
+/**
+ * Quietly preload a small batch of
+ * currently rendered Pipeline cards.
+ */
+function schedulePipelinePrefetch() {
+
+  const runPrefetch =
+    () => {
+
+      const cards =
+        Array.from(
+          document.querySelectorAll(
+            "[data-pipeline-lead]"
+          )
+        )
+          .slice(
+            0,
+            PIPELINE_PREFETCH_LIMIT
+          );
+
+
+      /*
+       * Fetch sequentially rather than firing
+       * 12 Apps Script calls at once.
+       */
+      preloadPipelineCardsSequentially(
+        cards,
+        0
+      );
+    };
+
+
+  if (
+    "requestIdleCallback" in window
+  ) {
+
+    window.requestIdleCallback(
+      runPrefetch,
+      {
+        timeout:
+          1500
+      }
+    );
+
+  } else {
+
+    window.setTimeout(
+      runPrefetch,
+      600
+    );
+  }
+}
+
+
+async function preloadPipelineCardsSequentially(
+  cards,
+  index
+) {
+
+  if (
+    !cards ||
+    index >= cards.length
+  ) {
+
+    return;
+  }
+
+
+  const leadId =
+    cards[index]
+      ?.dataset
+      ?.pipelineLead;
+
+
+  if (leadId) {
+
+    const existing =
+      getStoredCrmLead(
+        leadId
+      );
+
+
+    /*
+     * Only API-fetch if we genuinely do not
+     * already have the record.
+     */
+    if (!existing) {
+
+      try {
+
+        await getCachedCrmLead(
+          leadId
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "Background Lead preload failed:",
+          leadId,
+          error
+        );
+      }
+    }
+  }
+
+
+  /*
+   * Small gap so Apps Script is not hammered.
+   */
+  window.setTimeout(
+    () => {
+
+      preloadPipelineCardsSequentially(
+        cards,
+        index + 1
+      );
+
+    },
+    120
+  );
 }
 
 
@@ -976,16 +1321,22 @@ function openPipelineLead(
   }
 
 
+  /*
+   * Start / continue prefetch before navigation.
+   *
+   * If mouseenter already started it,
+   * cache.js reuses the same active request.
+   */
+  prefetchPipelineLead(
+    leadId
+  );
+
+
   window.location.href =
     `lead.html?lead=${encodeURIComponent(
       leadId
     )}`;
 }
-
-
-/* =========================================================
- * CARD
- * ========================================================= */
 
 
 /* =========================================================
