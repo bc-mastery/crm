@@ -3599,19 +3599,6 @@ a:hover {
 }
 
 
-.detail-header-clickable h2::after {
-  content:
-    "  ↗";
-
-  color:
-    var(--bc-green);
-
-  font-size:
-    13px;
-
-  font-weight:
-    700;
-}
 
 
 /* =========================================================
