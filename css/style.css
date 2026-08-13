@@ -4260,7 +4260,50 @@ a:hover {
 }
 
 
+/* =========================================================
+   LEAD PROFILE LINK
+========================================================= */
 
+.lead-profile-link {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    5px;
+
+  color:
+    inherit;
+
+  text-decoration:
+    none;
+
+  cursor:
+    pointer;
+}
+
+
+.lead-profile-link:hover {
+  color:
+    var(--bc-green);
+
+  text-decoration:
+    none;
+}
+
+
+.lead-profile-link-arrow {
+  color:
+    var(--bc-green);
+
+  font-size:
+    12px;
+
+  font-weight:
+    700;
+}
 
 
 
