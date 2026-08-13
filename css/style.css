@@ -3093,4 +3093,1175 @@ a:hover {
 }
 
 
+/* =========================================================
+   LEAD PROFILE PAGE
+========================================================= */
+
+.lead-profile-main {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   LEAD PROFILE HEADER
+========================================================= */
+
+.lead-profile-page-header {
+  flex:
+    0
+    0
+    auto;
+}
+
+
+.lead-profile-back-button {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  text-decoration:
+    none;
+}
+
+
+.lead-profile-back-button:hover {
+  text-decoration:
+    none;
+}
+
+
+/* =========================================================
+   LEAD PROFILE SEARCH
+========================================================= */
+
+.lead-profile-search-section {
+  position:
+    relative;
+
+  z-index:
+    30;
+
+  flex:
+    0
+    0
+    auto;
+
+  margin-bottom:
+    12px;
+}
+
+
+.lead-profile-search-wrap {
+  position:
+    relative;
+
+  width:
+    100%;
+
+  max-width:
+    520px;
+}
+
+
+.lead-profile-search-input {
+  width:
+    100%;
+
+  min-height:
+    38px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    8px;
+
+  background:
+    var(--bc-white);
+
+  color:
+    var(--text);
+
+  outline:
+    none;
+
+  font-size:
+    11px;
+
+  box-shadow:
+    0 2px 8px
+    rgba(2, 77, 79, 0.035);
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.lead-profile-search-input:focus {
+  border-color:
+    var(--bc-green);
+
+  box-shadow:
+    0 0 0 2px
+    rgba(48, 186, 128, 0.10);
+}
+
+
+/* =========================================================
+   LEAD PROFILE AUTOCOMPLETE
+========================================================= */
+
+.lead-profile-search-results {
+  position:
+    absolute;
+
+  top:
+    calc(100% + 5px);
+
+  left:
+    0;
+
+  right:
+    0;
+
+  z-index:
+    100;
+
+  max-height:
+    330px;
+
+  overflow-y:
+    auto;
+
+  overflow-x:
+    hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    9px;
+
+  background:
+    var(--bc-white);
+
+  box-shadow:
+    0 12px 28px
+    rgba(2, 77, 79, 0.13);
+}
+
+
+.lead-profile-search-result {
+  width:
+    100%;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    0;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  background:
+    var(--bc-white);
+
+  color:
+    var(--text);
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.12s ease;
+}
+
+
+.lead-profile-search-result:last-child {
+  border-bottom:
+    0;
+}
+
+
+.lead-profile-search-result:hover {
+  background:
+    var(--surface-soft);
+}
+
+
+.lead-profile-search-result-main {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    1px;
+}
+
+
+.lead-profile-search-result-main strong {
+  min-width:
+    0;
+
+  color:
+    var(--text);
+
+  font-size:
+    11px;
+
+  font-weight:
+    750;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.lead-profile-search-result-main small {
+  min-width:
+    0;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    9px;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.lead-profile-search-result-meta {
+  flex:
+    0
+    0
+    auto;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    8.5px;
+
+  font-weight:
+    700;
+}
+
+
+.lead-profile-search-empty {
+  padding:
+    16px;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    10px;
+
+  text-align:
+    center;
+}
+
+
+/* =========================================================
+   LEAD PROFILE WORKSPACE
+========================================================= */
+
+.lead-profile-workspace {
+  flex:
+    1
+    1
+    auto;
+
+  min-width:
+    0;
+
+  min-height:
+    0;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(0, 2.25fr)
+    minmax(300px, 0.95fr);
+
+  gap:
+    14px;
+
+  align-items:
+    stretch;
+}
+
+
+/* =========================================================
+   LEAD PROFILE DETAIL PANEL
+========================================================= */
+
+#leadProfileDetail {
+  min-width:
+    0;
+
+  min-height:
+    0;
+
+  height:
+    100%;
+
+  overflow:
+    hidden;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+#leadProfileDetail.detail-panel {
+  height:
+    100%;
+}
+
+
+#leadProfileDetail
+.detail-scroll-body {
+  flex:
+    1
+    1
+    auto;
+
+  min-height:
+    0;
+
+  overflow-y:
+    auto;
+
+  overflow-x:
+    hidden;
+}
+
+
+/* =========================================================
+   LEAD PROFILE WIDER FIELD LAYOUT
+========================================================= */
+
+#leadProfileDetail
+.detail-field {
+  grid-template-columns:
+    135px
+    minmax(0, 1fr);
+
+  gap:
+    18px;
+}
+
+
+#leadProfileDetail
+.lead-save-bar {
+  grid-template-columns:
+    135px
+    minmax(0, 1fr)
+    auto;
+
+  column-gap:
+    18px;
+}
+
+
+#leadProfileDetail
+.lead-save-spacer {
+  width:
+    135px;
+}
+
+
+#leadProfileDetail
+.detail-header {
+  padding:
+    19px
+    22px
+    16px;
+}
+
+
+#leadProfileDetail
+.detail-header h2 {
+  font-size:
+    21px;
+}
+
+
+#leadProfileDetail
+.detail-section {
+  padding:
+    18px
+    22px;
+}
+
+
+#leadProfileDetail
+.detail-value {
+  font-size:
+    11.5px;
+}
+
+
+#leadProfileDetail
+.detail-text-block p {
+  font-size:
+    11px;
+
+  line-height:
+    1.55;
+}
+
+
+/* =========================================================
+   CLICKABLE LEAD HEADER
+   Also applies to the Lead card on the Leads page.
+========================================================= */
+
+.detail-header-clickable {
+  cursor:
+    pointer;
+
+  transition:
+    background 0.14s ease;
+}
+
+
+.detail-header-clickable:hover {
+  background:
+    #F7FCFA;
+}
+
+
+.detail-header-clickable h2::after {
+  content:
+    "  ↗";
+
+  color:
+    var(--bc-green);
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   ACTIVITY PANEL
+========================================================= */
+
+.lead-profile-activity-panel {
+  min-width:
+    0;
+
+  min-height:
+    0;
+
+  height:
+    100%;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--surface);
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+/* =========================================================
+   ACTIVITY HEADER
+========================================================= */
+
+.lead-profile-activity-header {
+  flex:
+    0
+    0
+    auto;
+
+  padding:
+    16px
+    17px
+    13px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+}
+
+
+.lead-profile-activity-header h2 {
+  margin:
+    0;
+
+  color:
+    var(--text);
+
+  font-size:
+    14px;
+
+  letter-spacing:
+    -0.01em;
+}
+
+
+.lead-profile-activity-header p {
+  margin:
+    2px
+    0
+    0;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    9px;
+}
+
+
+/* =========================================================
+   ACTIVITY BODY
+========================================================= */
+
+.lead-profile-activity-body {
+  flex:
+    1
+    1
+    auto;
+
+  min-height:
+    0;
+
+  overflow-y:
+    auto;
+
+  overflow-x:
+    hidden;
+
+  padding:
+    12px;
+
+  overscroll-behavior:
+    contain;
+}
+
+
+/* =========================================================
+   ACTIVITY EMPTY STATE
+========================================================= */
+
+.lead-profile-activity-empty {
+  min-height:
+    220px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    24px;
+
+  color:
+    var(--text-soft);
+
+  text-align:
+    center;
+}
+
+
+.lead-profile-activity-empty h3 {
+  margin:
+    8px
+    0
+    4px;
+
+  color:
+    var(--text);
+
+  font-size:
+    13px;
+}
+
+
+.lead-profile-activity-empty p {
+  max-width:
+    240px;
+
+  margin:
+    0;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.5;
+}
+
+
+/* =========================================================
+   FUTURE ACTIVITY TIMELINE
+========================================================= */
+
+.activity-timeline {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    0;
+}
+
+
+.activity-date-group {
+  margin-bottom:
+    15px;
+}
+
+
+.activity-date-label {
+  margin-bottom:
+    8px;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.06em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.activity-item {
+  position:
+    relative;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    42px
+    minmax(0, 1fr);
+
+  gap:
+    9px;
+
+  padding:
+    0
+    0
+    13px;
+
+  margin-bottom:
+    1px;
+}
+
+
+.activity-item::before {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    46px;
+
+  top:
+    4px;
+
+  bottom:
+    -2px;
+
+  width:
+    1px;
+
+  background:
+    var(--border);
+}
+
+
+.activity-item:last-child::before {
+  display:
+    none;
+}
+
+
+.activity-time {
+  color:
+    var(--text-faint);
+
+  font-size:
+    8.5px;
+
+  font-weight:
+    650;
+}
+
+
+.activity-content {
+  position:
+    relative;
+
+  min-width:
+    0;
+
+  padding-left:
+    13px;
+}
+
+
+.activity-content::before {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    -4px;
+
+  top:
+    3px;
+
+  width:
+    8px;
+
+  height:
+    8px;
+
+  border:
+    2px solid
+    var(--bc-white);
+
+  border-radius:
+    50%;
+
+  background:
+    var(--bc-green);
+
+  box-shadow:
+    0 0 0 1px
+    var(--border-strong);
+}
+
+
+.activity-content strong {
+  display:
+    block;
+
+  color:
+    var(--text);
+
+  font-size:
+    10px;
+
+  font-weight:
+    750;
+}
+
+
+.activity-content p {
+  margin:
+    3px
+    0
+    0;
+
+  color:
+    var(--text-soft);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.45;
+}
+
+
+.activity-meta {
+  margin-top:
+    4px;
+
+  color:
+    var(--text-faint);
+
+  font-size:
+    8px;
+}
+
+
+/* =========================================================
+   LEAD PROFILE DESKTOP
+========================================================= */
+
+@media (min-width: 1051px) {
+
+  .lead-profile-main {
+    height:
+      100vh;
+
+    display:
+      flex;
+
+    flex-direction:
+      column;
+
+    overflow:
+      hidden;
+  }
+
+
+  .lead-profile-page-header,
+  .lead-profile-search-section,
+  .lead-profile-main
+  .status-panel {
+    flex:
+      0
+      0
+      auto;
+  }
+
+
+  .lead-profile-workspace {
+    flex:
+      1
+      1
+      auto;
+
+    min-height:
+      0;
+  }
+
+
+  #leadProfileDetail,
+  .lead-profile-activity-panel {
+    height:
+      100%;
+  }
+
+}
+
+
+/* =========================================================
+   LEAD PROFILE MEDIUM
+========================================================= */
+
+@media (max-width: 1250px) {
+
+  .lead-profile-workspace {
+    grid-template-columns:
+      minmax(0, 1.75fr)
+      minmax(280px, 0.85fr);
+  }
+
+
+  #leadProfileDetail
+  .detail-field {
+    grid-template-columns:
+      115px
+      minmax(0, 1fr);
+
+    gap:
+      14px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-bar {
+    grid-template-columns:
+      115px
+      minmax(0, 1fr)
+      auto;
+
+    column-gap:
+      14px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-spacer {
+    width:
+      115px;
+  }
+
+}
+
+
+/* =========================================================
+   LEAD PROFILE TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  .lead-profile-main {
+    overflow:
+      visible;
+  }
+
+
+  .lead-profile-workspace {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  #leadProfileDetail {
+    height:
+      auto;
+
+    overflow:
+      visible;
+  }
+
+
+  #leadProfileDetail
+  .detail-scroll-body {
+    overflow:
+      visible;
+  }
+
+
+  .lead-profile-activity-panel {
+    height:
+      500px;
+  }
+
+
+  .lead-profile-search-wrap {
+    max-width:
+      none;
+  }
+
+}
+
+
+/* =========================================================
+   LEAD PROFILE MOBILE
+========================================================= */
+
+@media (max-width: 760px) {
+
+  .lead-profile-page-header {
+    flex-direction:
+      row;
+
+    align-items:
+      center;
+  }
+
+
+  #leadProfileDetail
+  .detail-header {
+    padding:
+      16px;
+  }
+
+
+  #leadProfileDetail
+  .detail-section {
+    padding:
+      15px
+      16px;
+  }
+
+
+  #leadProfileDetail
+  .detail-field {
+    grid-template-columns:
+      100px
+      minmax(0, 1fr);
+
+    gap:
+      10px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-bar {
+    grid-template-columns:
+      100px
+      minmax(0, 1fr)
+      auto;
+
+    column-gap:
+      10px;
+
+    padding:
+      9px
+      16px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-spacer {
+    width:
+      100px;
+  }
+
+}
+
+
+/* =========================================================
+   LEAD PROFILE SMALL MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .lead-profile-page-header {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+  }
+
+
+  .lead-profile-back-button {
+    width:
+      100%;
+  }
+
+
+  #leadProfileDetail
+  .detail-field {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      3px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-bar {
+    grid-template-columns:
+      1fr
+      auto;
+
+    gap:
+      8px;
+  }
+
+
+  #leadProfileDetail
+  .lead-save-spacer {
+    display:
+      none;
+  }
+
+
+  .lead-profile-activity-panel {
+    height:
+      430px;
+  }
+
+}
+
+
+
+
+
+
 
