@@ -73,14 +73,6 @@ const PIPELINE_LAST_ACTION_FIELDS = [
 
 
 /* =========================================================
- * PREFETCH CONFIG
- * ========================================================= */
-
-const PIPELINE_PREFETCH_LIMIT =
-  12;
-
-
-/* =========================================================
  * INIT
  * ========================================================= */
 
@@ -918,14 +910,7 @@ function renderPipelineBoard(
 
 
   board.scrollLeft =
-    previousScrollLeft;
-
-
-  /*
-   * Once Pipeline is visible, quietly
-   * preload a small number of Lead records.
-   */
-  schedulePipelinePrefetch();
+  previousScrollLeft;
 }
 
 
@@ -1109,33 +1094,7 @@ function createPipelineLane(
         );
 
 
-        /*
-         * Hover / focus prefetch.
-         *
-         * Often gives enough time for the full
-         * Lead to enter cache before the user
-         * actually clicks.
-         */
-        card.addEventListener(
-          "mouseenter",
-          () => {
-
-            prefetchPipelineLead(
-              card.dataset.pipelineLead
-            );
-          }
-        );
-
-
-        card.addEventListener(
-          "focus",
-          () => {
-
-            prefetchPipelineLead(
-              card.dataset.pipelineLead
-            );
-          }
-        );
+        
       }
     );
 
@@ -1143,165 +1102,6 @@ function createPipelineLane(
   return lane;
 }
 
-
-/* =========================================================
- * PREFETCH
- * ========================================================= */
-
-function prefetchPipelineLead(
-  leadId
-) {
-
-  if (!leadId) {
-    return;
-  }
-
-
-  /*
-   * If already cached, this resolves
-   * immediately and costs no API call.
-   */
-  getCachedCrmLead(
-    leadId
-  )
-    .catch(
-      error => {
-
-        /*
-         * Prefetch failure should never
-         * interrupt Pipeline usage.
-         */
-        console.warn(
-          "Lead prefetch failed:",
-          leadId,
-          error
-        );
-      }
-    );
-}
-
-
-/**
- * Quietly preload a small batch of
- * currently rendered Pipeline cards.
- */
-function schedulePipelinePrefetch() {
-
-  const runPrefetch =
-    () => {
-
-      const cards =
-        Array.from(
-          document.querySelectorAll(
-            "[data-pipeline-lead]"
-          )
-        )
-          .slice(
-            0,
-            PIPELINE_PREFETCH_LIMIT
-          );
-
-
-      /*
-       * Fetch sequentially rather than firing
-       * 12 Apps Script calls at once.
-       */
-      preloadPipelineCardsSequentially(
-        cards,
-        0
-      );
-    };
-
-
-  if (
-    "requestIdleCallback" in window
-  ) {
-
-    window.requestIdleCallback(
-      runPrefetch,
-      {
-        timeout:
-          1500
-      }
-    );
-
-  } else {
-
-    window.setTimeout(
-      runPrefetch,
-      600
-    );
-  }
-}
-
-
-async function preloadPipelineCardsSequentially(
-  cards,
-  index
-) {
-
-  if (
-    !cards ||
-    index >= cards.length
-  ) {
-
-    return;
-  }
-
-
-  const leadId =
-    cards[index]
-      ?.dataset
-      ?.pipelineLead;
-
-
-  if (leadId) {
-
-    const existing =
-      getStoredCrmLead(
-        leadId
-      );
-
-
-    /*
-     * Only API-fetch if we genuinely do not
-     * already have the record.
-     */
-    if (!existing) {
-
-      try {
-
-        await getCachedCrmLead(
-          leadId
-        );
-
-      } catch (error) {
-
-        console.warn(
-          "Background Lead preload failed:",
-          leadId,
-          error
-        );
-      }
-    }
-  }
-
-
-  /*
-   * Small gap so Apps Script is not hammered.
-   */
-  window.setTimeout(
-    () => {
-
-      preloadPipelineCardsSequentially(
-        cards,
-        index + 1
-      );
-
-    },
-    120
-  );
-}
 
 
 /* =========================================================
@@ -1319,17 +1119,6 @@ function openPipelineLead(
   if (!leadId) {
     return;
   }
-
-
-  /*
-   * Start / continue prefetch before navigation.
-   *
-   * If mouseenter already started it,
-   * cache.js reuses the same active request.
-   */
-  prefetchPipelineLead(
-    leadId
-  );
 
 
   window.location.href =
