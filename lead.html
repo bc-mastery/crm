@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Business Canvas CRM — Lead Profile</title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+</head>
+
+
+<body>
+
+  <div class="crm-app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+      <div class="sidebar-brand">
+
+        <div class="brand-symbol brand-logo">
+
+          <img
+            src="assets/business-canvas-logo.png"
+            alt="Business Canvas"
+          >
+
+        </div>
+
+
+        <div class="brand-copy">
+
+          <div class="brand-name">
+            Business Canvas
+          </div>
+
+          <div class="brand-product">
+            CRM
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <nav class="sidebar-nav">
+
+        <a
+          href="index.html"
+          class="nav-item"
+        >
+
+          <span class="nav-icon">
+            ◫
+          </span>
+
+          <span>
+            Leads
+          </span>
+
+        </a>
+
+
+        <a
+          href="pipeline.html"
+          class="nav-item"
+        >
+
+          <span class="nav-icon">
+            ◧
+          </span>
+
+          <span>
+            Pipeline
+          </span>
+
+        </a>
+
+
+        <button
+          type="button"
+          class="nav-item disabled"
+          disabled
+        >
+
+          <span class="nav-icon">
+            ✓
+          </span>
+
+          <span>
+            Tasks
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item disabled"
+          disabled
+        >
+
+          <span class="nav-icon">
+            ◷
+          </span>
+
+          <span>
+            Activities
+          </span>
+
+        </button>
+
+      </nav>
+
+
+      <div class="sidebar-footer">
+
+        <div class="sidebar-footer-label">
+          Business Canvas
+        </div>
+
+        <div class="sidebar-footer-copy">
+          Internal CRM
+        </div>
+
+      </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN AREA
+    ====================================================== -->
+
+    <main class="main-content lead-profile-main">
+
+
+      <!-- ===================================================
+           HEADER
+      ==================================================== -->
+
+      <header class="page-header lead-profile-page-header">
+
+        <div>
+
+          <h1>
+            Lead Profile
+          </h1>
+
+        </div>
+
+
+        <div class="page-header-actions">
+
+          <a
+            href="index.html"
+            class="secondary-button lead-profile-back-button"
+          >
+            Back to Leads
+          </a>
+
+        </div>
+
+      </header>
+
+
+
+      <!-- ===================================================
+           LEAD SEARCH
+      ==================================================== -->
+
+      <section class="lead-profile-search-section">
+
+        <div class="lead-profile-search-wrap">
+
+          <input
+            type="search"
+            id="leadProfileSearchInput"
+            class="lead-profile-search-input"
+            placeholder="Search company, founder, lead ID..."
+            autocomplete="off"
+          >
+
+
+          <div
+            id="leadProfileSearchResults"
+            class="lead-profile-search-results"
+            hidden
+          >
+
+            <!--
+              lead-profile.js inserts autocomplete
+              results here.
+            -->
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ===================================================
+           STATUS
+      ==================================================== -->
+
+      <section
+        id="leadProfileStatusPanel"
+        class="status-panel"
+        hidden
+      >
+      </section>
+
+
+
+      <!-- ===================================================
+           PROFILE WORKSPACE
+      ==================================================== -->
+
+      <section class="lead-profile-workspace">
+
+
+        <!-- =================================================
+             COMPLETE LEAD PROFILE
+        ================================================== -->
+
+        <section
+          id="leadProfileDetail"
+          class="lead-profile-detail-panel"
+        >
+
+          <div class="lead-profile-loading-state">
+
+            <div class="detail-empty-icon">
+              ◫
+            </div>
+
+            <h2>
+              Select a lead
+            </h2>
+
+            <p>
+              Search for a company above or open a lead from the Leads or Pipeline page.
+            </p>
+
+          </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ACTIVITY LOG
+        ================================================== -->
+
+        <aside
+          id="leadProfileActivityPanel"
+          class="lead-profile-activity-panel"
+        >
+
+          <div class="lead-profile-activity-header">
+
+            <div>
+
+              <h2>
+                Activity log
+              </h2>
+
+              <p id="leadProfileActivityCount">
+                No lead selected
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="leadProfileActivityBody"
+            class="lead-profile-activity-body"
+          >
+
+            <div class="lead-profile-activity-empty">
+
+              <div class="detail-empty-icon">
+                ◷
+              </div>
+
+              <h3>
+                No activity yet
+              </h3>
+
+              <p>
+                Activity history for the selected lead will appear here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </aside>
+
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
+
+  <script src="js/config.js"></script>
+
+  <script src="js/api.js"></script>
+
+  <!--
+    Shared Lead renderer will be added next.
+  -->
+  <script src="js/lead-detail.js"></script>
+
+  <script src="js/lead-profile.js"></script>
+
+</body>
+
+</html>
