@@ -977,9 +977,15 @@ function openPipelineLead(
 
 
   window.location.href =
-  `lead.html?lead=${encodeURIComponent(
-    leadId
-  )}`;
+    `lead.html?lead=${encodeURIComponent(
+      leadId
+    )}`;
+}
+
+
+/* =========================================================
+ * CARD
+ * ========================================================= */
 
 
 /* =========================================================
