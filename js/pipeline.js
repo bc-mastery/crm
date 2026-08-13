@@ -484,6 +484,10 @@ function bindPipelineEvents() {
           );
 
 
+        /*
+         * True horizontal touchpad gesture:
+         * scroll Pipeline horizontally.
+         */
         if (
           Math.abs(
             event.deltaX
@@ -502,6 +506,11 @@ function bindPipelineEvents() {
         }
 
 
+        /*
+         * Preserve normal vertical scrolling
+         * inside a stage if that stage itself
+         * has vertical overflow.
+         */
         if (laneBody) {
 
           const canScrollVertically =
@@ -516,6 +525,11 @@ function bindPipelineEvents() {
         }
 
 
+        /*
+         * Everywhere else in the Pipeline,
+         * vertical wheel movement scrolls the
+         * board horizontally.
+         */
         if (
           event.deltaY !== 0
         ) {
@@ -872,8 +886,9 @@ function renderPipelineBoard(
 
 
   /*
-   * Preserve horizontal board position when
-   * cache refreshes or filters re-render.
+   * Preserve horizontal board position
+   * when filters or background cache
+   * updates cause a re-render.
    */
   const previousScrollLeft =
     board.scrollLeft;
@@ -910,7 +925,7 @@ function renderPipelineBoard(
 
 
   board.scrollLeft =
-  previousScrollLeft;
+    previousScrollLeft;
 }
 
 
@@ -1092,16 +1107,12 @@ function createPipelineLane(
             );
           }
         );
-
-
-        
       }
     );
 
 
   return lane;
 }
-
 
 
 /* =========================================================
