@@ -17,330 +17,84 @@
   >
 </head>
 
-
 <body>
 
   <div class="crm-app">
 
-
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
     <aside class="sidebar">
 
       <div class="sidebar-brand">
-
         <div class="brand-symbol brand-logo">
-  <img
-    src="assets/business-canvas-logo.png"
-    alt="Business Canvas"
-  >
-</div>
-
-        <div class="brand-copy">
-
-          <div class="brand-name">
-            Business Canvas
-          </div>
-
-          <div class="brand-product">
-            CRM
-          </div>
-
+          <img src="assets/business-canvas-logo.png" alt="Business Canvas">
         </div>
-
+        <div class="brand-copy">
+          <div class="brand-name">Business Canvas</div>
+          <div class="brand-product">CRM</div>
+        </div>
       </div>
 
-
       <nav class="sidebar-nav">
-
-        <a
-          href="index.html"
-          class="nav-item"
-        >
-          <span class="nav-icon">
-            ◫
-          </span>
-
-          <span>
-            Leads
-          </span>
-        </a>
-
-
-        <a
-          href="pipeline.html"
-          class="nav-item active"
-        >
-          <span class="nav-icon">
-            ◧
-          </span>
-
-          <span>
-            Pipeline
-          </span>
-        </a>
-
-        <a
-          href="lead.html"
-          class="nav-item"
-        >
-          <span class="nav-icon">
-            ▣
-          </span>
-
-          <span>
-            Lead Profile
-          </span>
-        </a>
-
-        <button
-          type="button"
-          class="nav-item disabled"
-          disabled
-        >
-          <span class="nav-icon">
-            ✓
-          </span>
-
-          <span>
-            Tasks
-          </span>
-        </button>
-
-        <a
-          href="activities.html"
-          class="nav-item"
-        >
-          <span class="nav-icon">
-            ◷
-          </span>
-
-          <span>
-            Activities
-          </span>
-        </a>
-
+        <a href="index.html" class="nav-item"><span class="nav-icon">◫</span><span>Leads</span></a>
+        <a href="pipeline.html" class="nav-item active"><span class="nav-icon">◧</span><span>Pipeline</span></a>
+        <a href="lead.html" class="nav-item"><span class="nav-icon">▣</span><span>Lead Profile</span></a>
+        <a href="tasks.html" class="nav-item"><span class="nav-icon">✓</span><span>Tasks</span></a>
+        <a href="activities.html" class="nav-item"><span class="nav-icon">◷</span><span>Activities</span></a>
       </nav>
 
-
       <div class="sidebar-footer">
-
-        <div class="sidebar-footer-label">
-          Business Canvas
-        </div>
-
-        <div class="sidebar-footer-copy">
-          Internal CRM
-        </div>
-
+        <div class="sidebar-footer-label">Business Canvas</div>
+        <div class="sidebar-footer-copy">Internal CRM</div>
       </div>
 
     </aside>
 
-
-
-    <!-- =====================================================
-         MAIN AREA
-    ====================================================== -->
-
     <main class="main-content pipeline-main">
 
-
-      <!-- ===================================================
-           HEADER
-      ==================================================== -->
-
       <header class="page-header">
-
-        <div>
-          <h1>
-            Pipeline
-          </h1>
-        </div>
-
-
+        <div><h1>Pipeline</h1></div>
         <div class="page-header-actions">
-
-          <button
-            type="button"
-            id="pipelineRefreshButton"
-            class="secondary-button"
-          >
-            Refresh
-          </button>
-
+          <button type="button" id="pipelineRefreshButton" class="secondary-button">Refresh</button>
         </div>
-
       </header>
 
-
-
-      <!-- ===================================================
-           FILTERS
-      ==================================================== -->
-
       <section class="filter-bar pipeline-filter-bar">
-
         <div class="filter-search">
-
-          <input
-            type="search"
-            id="pipelineSearchInput"
-            placeholder="Search company, founder, lead ID..."
-            autocomplete="off"
-          >
-
+          <input type="search" id="pipelineSearchInput" placeholder="Search company, founder, lead ID..." autocomplete="off">
         </div>
-
 
         <div class="filter-group">
-
-          <select id="pipelineIcpFilter">
-
-            <option value="">
-              All ICP fits
-            </option>
-
-          </select>
-
-
-          <select id="pipelineResearchFilter">
-
-            <option value="">
-              All research statuses
-            </option>
-
-          </select>
-
-
-          <select id="pipelineNextActionFilter">
-
-            <option value="">
-              All next actions
-            </option>
-
-          </select>
-
-
-          <select id="pipelineResponsibleFilter">
-
-            <option value="">
-              All responsible users
-            </option>
-
-          </select>
-
-
+          <select id="pipelineIcpFilter"><option value="">All ICP fits</option></select>
+          <select id="pipelineResearchFilter"><option value="">All research statuses</option></select>
+          <select id="pipelineNextActionFilter"><option value="">All next actions</option></select>
+          <select id="pipelineResponsibleFilter"><option value="">All responsible users</option></select>
           <select id="pipelineOrder">
-
-            <option value="next_action_asc">
-              Next action: earliest to latest
-            </option>
-
-            <option value="next_action_desc">
-              Next action: latest to earliest
-            </option>
-
-            <option value="last_action_desc">
-              Last action: latest to earliest
-            </option>
-
-            <option value="last_action_asc">
-              Last action: earliest to latest
-            </option>
-
-            <option value="newest">
-              Newest to oldest
-            </option>
-
-            <option value="oldest">
-              Oldest to newest
-            </option>
-
-            <option value="company_az">
-              Company A-Z
-            </option>
-
+            <option value="next_action_asc">Next action: earliest to latest</option>
+            <option value="next_action_desc">Next action: latest to earliest</option>
+            <option value="last_action_desc">Last action: latest to earliest</option>
+            <option value="last_action_asc">Last action: earliest to latest</option>
+            <option value="newest">Newest to oldest</option>
+            <option value="oldest">Oldest to newest</option>
+            <option value="company_az">Company A-Z</option>
           </select>
-
         </div>
-
       </section>
 
-
-
-      <!-- ===================================================
-           STATUS
-      ==================================================== -->
-
-      <section
-        id="pipelineStatusPanel"
-        class="status-panel"
-        hidden
-      >
-      </section>
-
-
-
-      <!-- ===================================================
-           PIPELINE BOARD
-      ==================================================== -->
+      <section id="pipelineStatusPanel" class="status-panel" hidden></section>
 
       <div class="pipeline-board-shell">
-
-  <button
-    type="button"
-    id="pipelineScrollLeft"
-    class="pipeline-scroll-button pipeline-scroll-button-left"
-    aria-label="Previous pipeline stage"
-  >
-    ‹
-  </button>
-
-
-  <section
-    id="pipelineBoard"
-    class="pipeline-board"
-  >
-
-    <!--
-      pipeline.js inserts stage columns here.
-    -->
-
-  </section>
-
-
-  <button
-    type="button"
-    id="pipelineScrollRight"
-    class="pipeline-scroll-button pipeline-scroll-button-right"
-    aria-label="Next pipeline stage"
-  >
-    ›
-  </button>
-
-</div>
+        <button type="button" id="pipelineScrollLeft" class="pipeline-scroll-button pipeline-scroll-button-left" aria-label="Previous pipeline stage">‹</button>
+        <section id="pipelineBoard" class="pipeline-board"></section>
+        <button type="button" id="pipelineScrollRight" class="pipeline-scroll-button pipeline-scroll-button-right" aria-label="Next pipeline stage">›</button>
+      </div>
 
     </main>
 
   </div>
 
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
-
   <script src="js/config.js"></script>
-
-<script src="js/api.js"></script>
-
-<script src="js/cache.js"></script>
-
-<script src="js/pipeline.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/pipeline.js"></script>
 
 </body>
-
 </html>
