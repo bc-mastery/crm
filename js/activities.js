@@ -12,7 +12,7 @@ async function initializeActivitiesPage() {
 
 function bindActivitiesUi() {
   document.getElementById("activitiesRefreshButton")?.addEventListener("click", loadActivitiesPageData);
-  ["activitySearchInput","activityWeekFilter","activityStageFilter","activityTypeFilter","activityDirectionFilter","activityChannelFilter"].forEach(id => {
+  ["activitySearchInput","activityWeekFilter","activityStageFilter","activityUserFilter","activityTypeFilter","activityDirectionFilter","activityChannelFilter"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener(id === "activitySearchInput" ? "input" : "change", applyActivityFilters);
   });
@@ -38,6 +38,7 @@ function populateActivityFilters() {
   populateSelect("activityDirectionFilter", uniqueValues(ACTIVITIES_STATE.activities, "Direction"), "All directions");
   populateSelect("activityChannelFilter", uniqueValues(ACTIVITIES_STATE.activities, "Channel"), "All channels");
   populateSelect("activityStageFilter", uniqueValues(ACTIVITIES_STATE.leads, "Pipeline_stage"), "All pipeline stages");
+  populateUserFilter();
   populateWeekFilter();
 }
 
@@ -54,6 +55,25 @@ function populateSelect(id, values, allLabel) {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = prettify(value);
+    select.appendChild(option);
+  });
+  if ([...select.options].some(o => o.value === current)) select.value = current;
+}
+
+function populateUserFilter() {
+  const select = document.getElementById("activityUserFilter");
+  if (!select) return;
+  const current = select.value;
+  const users = uniqueValues(ACTIVITIES_STATE.activities, "Created_by");
+  select.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "All users";
+  select.appendChild(all);
+  users.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user;
+    option.textContent = user;
     select.appendChild(option);
   });
   if ([...select.options].some(o => o.value === current)) select.value = current;
@@ -85,6 +105,7 @@ function applyActivityFilters() {
   const search = (document.getElementById("activitySearchInput")?.value || "").trim().toLowerCase();
   const week = document.getElementById("activityWeekFilter")?.value || "all";
   const stage = document.getElementById("activityStageFilter")?.value || "";
+  const user = document.getElementById("activityUserFilter")?.value || "";
   const type = document.getElementById("activityTypeFilter")?.value || "";
   const direction = document.getElementById("activityDirectionFilter")?.value || "";
   const channel = document.getElementById("activityChannelFilter")?.value || "";
@@ -101,6 +122,7 @@ function applyActivityFilters() {
     const createdAt = parseActivityDate(activity.Created_at);
     if (weekStart && (!createdAt || createdAt < weekStart || createdAt >= weekEnd)) return false;
     if (stage && String(lead.Pipeline_stage || "") !== stage) return false;
+    if (user && String(activity.Created_by || "") !== user) return false;
     if (type && String(activity.Activity_type || "") !== type) return false;
     if (direction && String(activity.Direction || "") !== direction) return false;
     if (channel && String(activity.Channel || "") !== channel) return false;
