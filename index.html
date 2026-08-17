@@ -1,446 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Business Canvas CRM</title>
-
-  <link
-    rel="stylesheet"
-    href="css/style.css"
-  >
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
-
 <body>
-
   <div class="crm-app">
-
-
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
     <aside class="sidebar">
-
       <div class="sidebar-brand">
-
-        <div class="brand-symbol brand-logo">
-  <img
-    src="assets/business-canvas-logo.png"
-    alt="Business Canvas"
-  >
-</div>
-
-        <div class="brand-copy">
-
-          <div class="brand-name">
-            Business Canvas
-          </div>
-
-          <div class="brand-product">
-            CRM
-          </div>
-
-        </div>
-
+        <div class="brand-symbol brand-logo"><img src="assets/business-canvas-logo.png" alt="Business Canvas"></div>
+        <div class="brand-copy"><div class="brand-name">Business Canvas</div><div class="brand-product">CRM</div></div>
       </div>
-
-
       <nav class="sidebar-nav">
-
-        <button
-          type="button"
-          class="nav-item active"
-        >
-          <span class="nav-icon">
-            ◫
-          </span>
-
-          <span>
-            Leads
-          </span>
-        </button>
-
-
-        <a
-  href="pipeline.html"
-  class="nav-item"
->
-  <span class="nav-icon">
-    ◧
-  </span>
-
-  <span>
-    Pipeline
-  </span>
-</a>
-
-
-        <a
-  href="lead.html"
-  class="nav-item"
->
-  <span class="nav-icon">
-    ▣
-  </span>
-
-  <span>
-    Lead Profile
-  </span>
-</a>
-
-        
-        <button
-          type="button"
-          class="nav-item disabled"
-          disabled
-        >
-          <span class="nav-icon">
-            ✓
-          </span>
-
-          <span>
-            Tasks
-          </span>
-        </button>
-
-
-        <a
-          href="activities.html"
-          class="nav-item"
-        >
-          <span class="nav-icon">
-            ◷
-          </span>
-
-          <span>
-            Activities
-          </span>
-        </a>
-
+        <button type="button" class="nav-item active"><span class="nav-icon">◫</span><span>Leads</span></button>
+        <a href="pipeline.html" class="nav-item"><span class="nav-icon">◧</span><span>Pipeline</span></a>
+        <a href="lead.html" class="nav-item"><span class="nav-icon">▣</span><span>Lead Profile</span></a>
+        <a href="tasks.html" class="nav-item"><span class="nav-icon">✓</span><span>Tasks</span></a>
+        <a href="activities.html" class="nav-item"><span class="nav-icon">◷</span><span>Activities</span></a>
       </nav>
-
-
-      <div class="sidebar-footer">
-
-        <div class="sidebar-footer-label">
-          Business Canvas
-        </div>
-
-        <div class="sidebar-footer-copy">
-          Internal CRM
-        </div>
-
-      </div>
-
+      <div class="sidebar-footer"><div class="sidebar-footer-label">Business Canvas</div><div class="sidebar-footer-copy">Internal CRM</div></div>
     </aside>
 
-
-
-    <!-- =====================================================
-         MAIN AREA
-    ====================================================== -->
-
     <main class="main-content">
-
-
-      <!-- ===================================================
-           HEADER
-      ==================================================== -->
-
       <header class="page-header">
-
-        <div>
-  <h1>
-    Leads
-  </h1>
-</div>
-
-
-        <div class="page-header-actions">
-
-          <button
-            type="button"
-            id="refreshButton"
-            class="secondary-button"
-          >
-            Refresh
-          </button>
-
-        </div>
-
+        <div><h1>Leads</h1></div>
+        <div class="page-header-actions"><button type="button" id="refreshButton" class="secondary-button">Refresh</button></div>
       </header>
 
-
-
-      <!-- ===================================================
-           FILTERS
-      ==================================================== -->
-
       <section class="filter-bar">
-
-        <div class="filter-search">
-
-          <input
-            type="search"
-            id="searchInput"
-            placeholder="Search company, founder, lead ID..."
-            autocomplete="off"
-          >
-
-        </div>
-
-
+        <div class="filter-search"><input type="search" id="searchInput" placeholder="Search company, founder, lead ID..." autocomplete="off"></div>
         <div class="filter-group">
-
-          <select id="stageFilter">
-
-            <option value="">
-              All pipeline stages
-            </option>
-
-          </select>
-
-
-          <select id="icpFilter">
-
-            <option value="">
-              All ICP fits
-            </option>
-
-          </select>
-
-
-          <select id="researchStatusFilter">
-
-            <option value="">
-              All research statuses
-            </option>
-
-          </select>
-
-
-          <select id="nextActionTypeFilter">
-
-            <option value="">
-              All next actions
-            </option>
-
-          </select>
-
-
-          <select id="responsibleFilter">
-
-            <option value="">
-              All responsible users
-            </option>
-
-          </select>
-
+          <select id="stageFilter"><option value="">All pipeline stages</option></select>
+          <select id="icpFilter"><option value="">All ICP fits</option></select>
+          <select id="researchStatusFilter"><option value="">All research statuses</option></select>
+          <select id="nextActionTypeFilter"><option value="">All next actions</option></select>
+          <select id="responsibleFilter"><option value="">All responsible users</option></select>
         </div>
-
       </section>
 
-
-
-      <!-- ===================================================
-           STATUS MESSAGE
-      ==================================================== -->
-
-      <section
-        id="statusPanel"
-        class="status-panel"
-        hidden
-      >
-      </section>
-
-
-
-      <!-- ===================================================
-           CRM WORKSPACE
-      ==================================================== -->
+      <section id="statusPanel" class="status-panel" hidden></section>
 
       <section class="crm-workspace">
-
-
-        <!-- =================================================
-             LEADS TABLE
-        ================================================== -->
-
         <div class="lead-list-panel">
-
           <div class="panel-header lead-list-header">
-
-            <div>
-
-              <h2>
-                Lead database
-              </h2>
-
-              <p id="leadCount">
-                0 leads
-              </p>
-
-            </div>
-
-
+            <div><h2>Lead database</h2><p id="leadCount">0 leads</p></div>
             <div class="lead-list-order">
-
-              <label
-                for="listOrder"
-                class="lead-list-order-label"
-              >
-                List order
-              </label>
-
-
+              <label for="listOrder" class="lead-list-order-label">List order</label>
               <select id="listOrder">
-
-                <option value="newest">
-                  Newest to oldest
-                </option>
-
-                <option value="oldest">
-                  Oldest to newest
-                </option>
-
-                <option value="company_az">
-                  Company A-Z
-                </option>
-
-                <option value="next_action_asc">
-                  Next action: earliest to latest
-                </option>
-
-                <option value="next_action_desc">
-                  Next action: latest to earliest
-                </option>
-
-                <option value="last_action_asc">
-                  Last action: earliest to latest
-                </option>
-
-                <option value="last_action_desc">
-                  Last action: latest to earliest
-                </option>
-
+                <option value="newest">Newest to oldest</option>
+                <option value="oldest">Oldest to newest</option>
+                <option value="company_az">Company A-Z</option>
+                <option value="next_action_asc">Next action: earliest to latest</option>
+                <option value="next_action_desc">Next action: latest to earliest</option>
+                <option value="last_action_asc">Last action: earliest to latest</option>
+                <option value="last_action_desc">Last action: latest to earliest</option>
               </select>
-
             </div>
-
           </div>
-
 
           <div class="table-container">
-
             <table class="lead-table">
-
               <thead>
-
                 <tr>
-
-                  <th class="col-company">
-                    Company
-                  </th>
-
-                  <th class="col-founder">
-                    Founder
-                  </th>
-
-                  <th class="col-stage">
-                    Stage
-                  </th>
-
-                  <th class="col-next-action-date">
-                    Next action date
-                  </th>
-
-                  <th class="col-next-action">
-                    Next action
-                  </th>
-
-                  <th class="col-last-action-date">
-                    Last action date
-                  </th>
-
+                  <th class="col-company">Company</th>
+                  <th class="col-founder">Founder</th>
+                  <th class="col-stage">Stage</th>
+                  <th class="col-next-action-date">Next action date</th>
+                  <th class="col-next-action">Next action</th>
+                  <th class="col-last-action-date">Last action date</th>
                 </tr>
-
               </thead>
-
-
-              <tbody id="leadTableBody">
-
-                <!--
-                  app.js inserts lead rows here.
-                -->
-
-              </tbody>
-
+              <tbody id="leadTableBody"></tbody>
             </table>
-
           </div>
-
         </div>
 
-
-
-        <!-- =================================================
-             LEAD DETAILS
-        ================================================== -->
-
-        <aside
-          id="leadDetail"
-          class="detail-panel empty"
-        >
-
+        <aside id="leadDetail" class="detail-panel empty">
           <div class="detail-empty-state">
-
-            <div class="detail-empty-icon">
-              ◫
-            </div>
-
-            <h2>
-              Select a lead
-            </h2>
-
-            <p>
-              Click a company in the lead database to view its complete CRM record.
-            </p>
-
+            <div class="detail-empty-icon">◫</div>
+            <h2>Select a lead</h2>
+            <p>Click a company in the lead database to view its complete CRM record.</p>
           </div>
-
         </aside>
-
-
       </section>
-
     </main>
-
   </div>
 
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
-
   <script src="js/config.js"></script>
-
-<script src="js/api.js"></script>
-
-<script src="js/cache.js"></script>
-
-<script src="js/lead-detail.js"></script>
-
-<script src="js/app.js"></script>
-
+  <script src="js/api.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/lead-detail.js"></script>
+  <script src="js/app.js"></script>
 </body>
-
 </html>

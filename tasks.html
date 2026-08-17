@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Canvas CRM — Tasks</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/tasks.css">
+</head>
+<body>
+  <div class="crm-app">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-symbol brand-logo"><img src="assets/business-canvas-logo.png" alt="Business Canvas"></div>
+        <div class="brand-copy"><div class="brand-name">Business Canvas</div><div class="brand-product">CRM</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"><span class="nav-icon">◫</span><span>Leads</span></a>
+        <a href="pipeline.html" class="nav-item"><span class="nav-icon">◧</span><span>Pipeline</span></a>
+        <a href="lead.html" class="nav-item"><span class="nav-icon">▣</span><span>Lead Profile</span></a>
+        <a href="tasks.html" class="nav-item active"><span class="nav-icon">✓</span><span>Tasks</span></a>
+        <a href="activities.html" class="nav-item"><span class="nav-icon">◷</span><span>Activities</span></a>
+      </nav>
+      <div class="sidebar-footer"><div class="sidebar-footer-label">Business Canvas</div><div class="sidebar-footer-copy">Internal CRM</div></div>
+    </aside>
+
+    <main class="main-content tasks-main">
+      <header class="page-header">
+        <div><h1>Tasks</h1></div>
+        <div class="page-header-actions">
+          <button type="button" id="newTaskButton" class="secondary-button">New task</button>
+          <button type="button" id="tasksRefreshButton" class="secondary-button">Refresh</button>
+        </div>
+      </header>
+
+      <section class="tasks-summary" aria-label="Task summary">
+        <article class="task-stat overdue"><span class="task-stat-label">Overdue</span><strong id="taskOverdue">0</strong></article>
+        <article class="task-stat today"><span class="task-stat-label">Today</span><strong id="taskToday">0</strong></article>
+        <article class="task-stat upcoming"><span class="task-stat-label">Upcoming</span><strong id="taskUpcoming">0</strong></article>
+        <article class="task-stat completed"><span class="task-stat-label">Completed</span><strong id="taskCompleted">0</strong></article>
+      </section>
+
+      <section class="filter-bar tasks-filter-bar">
+        <div class="filter-search"><input type="search" id="taskSearchInput" placeholder="Search company, task, lead ID..." autocomplete="off"></div>
+        <div class="filter-group tasks-filter-group">
+          <select id="taskDueFilter"><option value="open">Open tasks</option><option value="overdue">Overdue</option><option value="today">Today</option><option value="upcoming">Upcoming</option><option value="all">All dates</option></select>
+          <select id="taskStatusFilter"><option value="">All statuses</option></select>
+          <select id="taskUserFilter"><option value="">All users</option></select>
+          <select id="taskTypeFilter"><option value="">All task types</option></select>
+          <select id="taskStageFilter"><option value="">All pipeline stages</option></select>
+        </div>
+      </section>
+
+      <section id="tasksStatusPanel" class="status-panel" hidden></section>
+
+      <section class="tasks-workspace">
+        <div class="panel-header tasks-panel-header">
+          <div><h2>Task queue</h2><p id="taskCount">0 tasks</p></div>
+          <div class="tasks-range-label" id="taskRangeLabel">Open tasks</div>
+        </div>
+        <div class="table-container tasks-table-container">
+          <table class="lead-table tasks-table">
+            <thead><tr><th>Due</th><th>Lead</th><th>Task</th><th>Type</th><th>Stage</th><th>User</th><th>Status</th><th>Source</th><th>Actions</th></tr></thead>
+            <tbody id="tasksTableBody"></tbody>
+          </table>
+          <div id="tasksEmptyState" class="tasks-empty" hidden>No tasks match the selected filters.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="taskDialog" class="task-dialog">
+    <form id="taskForm" method="dialog">
+      <div class="task-dialog-header"><div><h2>New task</h2><p>Create a manual task for a CRM lead.</p></div><button type="button" id="taskDialogClose" class="task-dialog-close" aria-label="Close">×</button></div>
+      <div class="task-form-grid">
+        <label>Lead<select id="taskLeadInput" required><option value="">Select lead</option></select></label>
+        <label>Task type<select id="taskTypeInput" required><option value="OTHER">Other</option></select></label>
+        <label class="task-form-wide">Task title<input id="taskTitleInput" type="text" maxlength="180" required></label>
+        <label>Due date<input id="taskDueInput" type="datetime-local" required></label>
+        <label>User<select id="taskUserInput" required><option value="">Select user</option></select></label>
+        <label class="task-form-wide">Notes<textarea id="taskNotesInput" rows="3"></textarea></label>
+      </div>
+      <div class="task-dialog-actions"><button type="button" id="taskDialogCancel" class="secondary-button">Cancel</button><button type="submit" class="primary-button">Create task</button></div>
+    </form>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/tasks.js"></script>
+</body>
+</html>
