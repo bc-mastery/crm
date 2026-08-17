@@ -1,0 +1,32 @@
+/* =========================================================
+   PIPELINE TASK EMPHASIS
+========================================================= */
+
+.pipeline-card-has-overdue-task {
+  border-color: #E7A8A8;
+  background: #FFF8F8;
+}
+
+.pipeline-card-has-overdue-task:hover {
+  border-color: var(--danger);
+  background: #FFF4F4;
+}
+
+.pipeline-card-overdue-text {
+  color: var(--danger-deep) !important;
+  font-weight: 700;
+}
+
+.pipeline-card-overdue-badge {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--danger-soft);
+  color: var(--danger-deep) !important;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  vertical-align: 1px;
+}
