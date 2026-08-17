@@ -198,6 +198,61 @@ async function getCrmActivities() {
 
 
 /* =========================================================
+ * TASKS
+ * ========================================================= */
+
+async function getCrmTasks() {
+
+  const data =
+    await crmApiGet({
+      action: "listTasks"
+    });
+
+
+  return data.tasks || [];
+}
+
+
+async function createCrmTask(
+  task
+) {
+
+  const data =
+    await crmApiPost({
+      action: "createTask",
+      ...task
+    });
+
+
+  return data.task || null;
+}
+
+
+async function setCrmTaskStatus(
+  taskId,
+  status
+) {
+
+  if (!taskId) {
+    throw new Error(
+      "Task ID is required."
+    );
+  }
+
+
+  const data =
+    await crmApiPost({
+      action: "setTaskStatus",
+      taskId: taskId,
+      status: status
+    });
+
+
+  return data.task || null;
+}
+
+
+/* =========================================================
  * UPDATE LEAD
  * ========================================================= */
 
