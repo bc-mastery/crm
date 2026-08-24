@@ -77,7 +77,7 @@
         <label>Lead<select id="taskLeadInput" required><option value="">Select lead</option></select></label>
         <label>Task type<select id="taskTypeInput" required><option value="OTHER">Other</option></select></label>
         <label class="task-form-wide">Task title<input id="taskTitleInput" type="text" maxlength="180" required></label>
-        <label>Due date<input id="taskDueInput" type="datetime-local" required></label>
+        <label>Due date<input id="taskDueInput" type="datetime-local"></label>
         <label>User<select id="taskUserInput" required><option value="">Select user</option></select></label>
         <label class="task-form-wide">Notes<textarea id="taskNotesInput" rows="3"></textarea></label>
       </div>
@@ -87,6 +87,8 @@
 
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/task-cache.js"></script>
   <script src="js/tasks.js"></script>
 </body>
 </html>
