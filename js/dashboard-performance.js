@@ -2,17 +2,21 @@
  * Business Canvas CRM
  * Dashboard performance layer
  *
- * Keeps the dashboard's critical rendering path on the shared browser cache.
- * Lead/meta data render first; task data is refreshed independently afterwards.
+ * Lead/meta data render from the shared browser cache first.
+ * Task data is cache-first and refreshes independently so it never blocks the dashboard.
  */
 
-async function loadDashboardData_() {
-  setDashboardStatus_("Loading dashboard…", "info");
+async function loadDashboardData_(eventOrOptions = {}) {
+  const forceRefresh = eventOrOptions instanceof Event || eventOrOptions?.forceRefresh === true;
+
+  if (forceRefresh) {
+    setDashboardStatus_("Refreshing dashboard…", "info");
+  }
 
   try {
     const [leadsResult, metaResult] = await Promise.allSettled([
-      getCachedCrmLeads(),
-      getCachedCrmMeta()
+      getCachedCrmLeads({ forceRefresh, backgroundRefresh: !forceRefresh }),
+      getCachedCrmMeta({ forceRefresh })
     ]);
 
     if (leadsResult.status !== "fulfilled") {
@@ -22,27 +26,33 @@ async function loadDashboardData_() {
     DASHBOARD_STATE.leads = leadsResult.value || [];
     DASHBOARD_STATE.meta = metaResult.status === "fulfilled" ? metaResult.value : null;
 
-    /*
-     * Render the dashboard immediately from lead/meta data.
-     * Tasks should never block funnel/pipeline analytics.
-     */
+    const cachedTasks = typeof readStoredCrmTasks_ === "function"
+      ? readStoredCrmTasks_()
+      : null;
+
+    DASHBOARD_STATE.tasks = cachedTasks?.value || [];
+
+    /* Critical dashboard content renders now. */
     populateDashboardUsers_();
     applyDashboardFilters_();
     clearDashboardStatus_();
 
-    /*
-     * Refresh task-dependent widgets separately.
-     */
-    try {
-      DASHBOARD_STATE.tasks = await getCrmTasks();
-      applyDashboardFilters_();
-    } catch (taskError) {
-      console.warn("Dashboard task refresh failed:", taskError);
-      setDashboardStatus_(
-        "Dashboard loaded, but task data is temporarily unavailable.",
-        "warning"
-      );
-    }
+    /* Task-dependent widgets refresh independently. */
+    getCachedCrmTasks({ forceRefresh, backgroundRefresh: !forceRefresh })
+      .then(tasks => {
+        DASHBOARD_STATE.tasks = Array.isArray(tasks) ? tasks : [];
+        applyDashboardFilters_();
+        clearDashboardStatus_();
+      })
+      .catch(taskError => {
+        console.warn("Dashboard task refresh failed:", taskError);
+        if (!cachedTasks) {
+          setDashboardStatus_(
+            "Dashboard loaded, but task data is temporarily unavailable.",
+            "warning"
+          );
+        }
+      });
 
   } catch (error) {
     console.error(error);
@@ -52,3 +62,17 @@ async function loadDashboardData_() {
     );
   }
 }
+
+window.addEventListener("crm-tasks-updated", event => {
+  const tasks = event.detail?.tasks;
+  if (!Array.isArray(tasks)) return;
+  DASHBOARD_STATE.tasks = tasks;
+  applyDashboardFilters_();
+});
+
+window.addEventListener("crm-leads-updated", event => {
+  const leads = event.detail?.leads;
+  if (!Array.isArray(leads)) return;
+  DASHBOARD_STATE.leads = leads;
+  applyDashboardFilters_();
+});
