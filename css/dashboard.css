@@ -2,8 +2,25 @@
    BUSINESS CANVAS CRM — DASHBOARD
 ========================================================= */
 
+html,
+body {
+  min-height: 100%;
+  height: auto;
+  overflow-y: auto;
+}
+
+.crm-app {
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+}
+
 .dashboard-main {
   min-width: 0;
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+  padding-bottom: 40px;
 }
 
 .dashboard-page-header {
