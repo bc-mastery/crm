@@ -2,26 +2,28 @@
    BUSINESS CANVAS CRM — LEAD PROFILE TASK ACTION
 ========================================================= */
 
-.lead-profile-header-actions {
+.lead-profile-search-actions-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
 
-.lead-profile-new-task-button {
-  min-height: 34px;
-  padding: 0 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--deep-accent);
-  font-size: 12px;
-  font-weight: 700;
+.lead-profile-search-actions-row .lead-profile-search-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lead-profile-top-task-button {
+  flex: 0 0 auto;
+  min-height: 56px;
+  padding: 0 22px;
   white-space: nowrap;
+  font-weight: 700;
 }
 
-.lead-profile-new-task-button:hover {
-  background: var(--surface-soft);
+.lead-profile-top-task-button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .lead-task-dialog {
@@ -111,16 +113,20 @@
 }
 
 @media (max-width: 720px) {
+  .lead-profile-search-actions-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lead-profile-top-task-button {
+    width: 100%;
+  }
+
   .lead-task-form-grid {
     grid-template-columns: 1fr;
   }
 
   .lead-task-form-wide {
     grid-column: auto;
-  }
-
-  .lead-profile-header-actions {
-    align-items: flex-end;
-    flex-direction: column;
   }
 }
