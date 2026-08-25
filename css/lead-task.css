@@ -1,0 +1,166 @@
+/* =========================================================
+   BUSINESS CANVAS CRM — LEAD PROFILE TASK ACTION
+========================================================= */
+
+/*
+ * Search + New task row.
+ *
+ * Keep the search field at its existing Lead Profile width
+ * and pin New task to the far-right edge so it sits directly
+ * below Back to Leads.
+ */
+.lead-profile-search-actions-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 18px;
+}
+
+.lead-profile-search-actions-row .lead-profile-search-wrap {
+  flex: 0 1 780px;
+  width: 100%;
+  min-width: 0;
+}
+
+.lead-profile-top-task-button {
+  flex: 0 0 146px;
+  width: 146px;
+  min-width: 146px;
+  height: 38px;
+  min-height: 38px;
+  margin-left: auto;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Match the top-right Back to Leads control exactly in width. */
+.lead-profile-back-button {
+  width: 146px;
+  min-width: 146px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lead-profile-top-task-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.lead-task-dialog {
+  width: min(680px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 70px rgba(2, 77, 79, 0.22);
+  color: var(--text);
+}
+
+.lead-task-dialog::backdrop {
+  background: rgba(2, 45, 46, 0.34);
+}
+
+.lead-task-form {
+  padding: 22px;
+}
+
+.lead-task-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.lead-task-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.lead-task-dialog-header p {
+  margin: 5px 0 0;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.lead-task-dialog-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.lead-task-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.lead-task-form-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lead-task-form-wide {
+  grid-column: 1 / -1;
+}
+
+.lead-task-form-grid input,
+.lead-task-form-grid select,
+.lead-task-form-grid textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+}
+
+.lead-task-form-grid textarea {
+  resize: vertical;
+}
+
+.lead-task-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+  .lead-profile-search-actions-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lead-profile-search-actions-row .lead-profile-search-wrap,
+  .lead-profile-top-task-button {
+    width: 100%;
+    min-width: 0;
+    flex-basis: auto;
+  }
+
+  .lead-profile-top-task-button {
+    height: 38px;
+    min-height: 38px;
+    margin-left: 0;
+  }
+
+  .lead-task-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-task-form-wide {
+    grid-column: auto;
+  }
+}

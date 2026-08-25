@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Canvas CRM — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <div class="crm-app">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-symbol brand-logo"><img src="assets/business-canvas-logo.png" alt="Business Canvas"></div>
+        <div class="brand-copy"><div class="brand-name">Business Canvas</div><div class="brand-product">CRM</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item active"><span class="nav-icon">◉</span><span>Dashboard</span></a>
+        <a href="index.html" class="nav-item"><span class="nav-icon">◫</span><span>Leads</span></a>
+        <a href="pipeline.html" class="nav-item"><span class="nav-icon">◧</span><span>Pipeline</span></a>
+        <a href="lead.html" class="nav-item"><span class="nav-icon">▣</span><span>Lead Profile</span></a>
+        <a href="tasks.html" class="nav-item"><span class="nav-icon">✓</span><span>Tasks</span></a>
+        <a href="activities.html" class="nav-item"><span class="nav-icon">◷</span><span>Activities</span></a>
+      </nav>
+      <div class="sidebar-footer"><div class="sidebar-footer-label">Business Canvas</div><div class="sidebar-footer-copy">Internal CRM</div></div>
+    </aside>
+
+    <main class="main-content dashboard-main">
+      <header class="page-header dashboard-page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="dashboard-subtitle">Funnel performance, pipeline health and next-action coverage.</p>
+        </div>
+        <div class="page-header-actions"><button type="button" id="dashboardRefreshButton" class="secondary-button">Refresh</button></div>
+      </header>
+
+      <section class="dashboard-filter-bar">
+        <label><span>User</span><select id="dashboardUserFilter"><option value="">All users</option></select></label>
+        <label><span>Period</span><select id="dashboardPeriodFilter"><option value="this_week">This week</option><option value="last_4_weeks">Last 4 weeks</option><option value="this_month" selected>This month</option><option value="last_month">Last month</option><option value="this_quarter">This quarter</option><option value="this_year">This year</option><option value="overall">Overall</option></select></label>
+        <div class="dashboard-filter-note"><strong id="dashboardPeriodLabel">This month</strong><span>Period is based on when the lead entered the CRM.</span></div>
+      </section>
+
+      <section id="dashboardStatusPanel" class="status-panel" hidden></section>
+
+      <section class="dashboard-kpis" aria-label="Dashboard summary">
+        <article class="dashboard-kpi"><span>Cohort leads</span><strong id="dashboardLeadCount">0</strong><small id="dashboardActiveCount">0 active</small></article>
+        <article class="dashboard-kpi"><span>Response rate</span><strong id="dashboardResponseRate">—</strong><small id="dashboardResponseDetail">0 responses</small></article>
+        <article class="dashboard-kpi"><span>Review booking</span><strong id="dashboardReviewRate">—</strong><small id="dashboardReviewDetail">0 booked</small></article>
+        <article class="dashboard-kpi"><span>Proposal rate</span><strong id="dashboardProposalRate">—</strong><small id="dashboardProposalDetail">0 proposals</small></article>
+        <article class="dashboard-kpi"><span>Win rate</span><strong id="dashboardWinRate">—</strong><small id="dashboardWinDetail">0 won</small></article>
+        <article class="dashboard-kpi dashboard-kpi-attention"><span>Open tasks</span><strong id="dashboardOpenTasks">0</strong><small id="dashboardOverdueTasks">0 overdue</small></article>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid-primary">
+        <article class="dashboard-card dashboard-funnel-card"><div class="dashboard-card-header"><div><h2>Sales funnel</h2><p>Major buyer-progress milestones for the selected lead cohort.</p></div></div><div id="dashboardFunnel" class="dashboard-funnel"></div></article>
+        <article class="dashboard-card dashboard-pipeline-card"><div class="dashboard-card-header"><div><h2>Current pipeline</h2><p>Where active leads from this cohort sit now.</p></div></div><div id="dashboardPipelineChart" class="dashboard-pipeline-chart"></div></article>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid-secondary">
+        <article class="dashboard-card"><div class="dashboard-card-header"><div><h2>Conversion efficiency</h2><p>Stage-to-stage conversion between the major funnel steps.</p></div></div><div id="dashboardConversionTable" class="dashboard-conversion-table"></div></article>
+        <article class="dashboard-card"><div class="dashboard-card-header"><div><h2>Attention now</h2><p>Overdue tasks first, then the nearest upcoming actions.</p></div><a href="tasks.html" class="dashboard-card-link">Open Tasks</a></div><div id="dashboardAttentionList" class="dashboard-attention-list"></div></article>
+      </section>
+
+      <section class="dashboard-grid dashboard-grid-tertiary">
+        <article class="dashboard-card dashboard-compact-card"><div class="dashboard-card-header"><div><h2>Next-action coverage</h2><p>Active leads with an open task.</p></div></div><div id="dashboardCoverage" class="dashboard-coverage"></div></article>
+        <article class="dashboard-card dashboard-compact-card"><div class="dashboard-card-header"><div><h2>ICP quality</h2><p>Fit distribution for the selected cohort.</p></div></div><div id="dashboardIcpMix" class="dashboard-mix"></div></article>
+        <article class="dashboard-card dashboard-compact-card"><div class="dashboard-card-header"><div><h2>Lead source</h2><p>Where selected leads were sourced.</p></div></div><div id="dashboardSourceMix" class="dashboard-mix"></div></article>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/cache.js"></script>
+  <script src="js/task-cache.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/dashboard-performance.js"></script>
+</body>
+</html>
