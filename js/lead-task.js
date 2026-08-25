@@ -22,48 +22,26 @@ document.addEventListener("DOMContentLoaded", initializeLeadProfileTaskAction);
 function initializeLeadProfileTaskAction() {
   bindLeadProfileTaskDialog_();
 
+  const button = document.getElementById("leadProfileNewTaskButton");
+  button?.addEventListener("click", openLeadProfileTaskDialog_);
+
   const detailPanel = document.getElementById("leadProfileDetail");
-  if (!detailPanel) return;
-
-  const observer = new MutationObserver(() => {
-    injectLeadProfileTaskButton_();
-  });
-
-  observer.observe(detailPanel, {
-    childList: true,
-    subtree: true
-  });
-
-  injectLeadProfileTaskButton_();
-}
-
-function injectLeadProfileTaskButton_() {
-  const detailPanel = document.getElementById("leadProfileDetail");
-  if (!detailPanel) return;
-
-  const header = detailPanel.querySelector(".detail-header");
-  const stage = header?.querySelector(".detail-stage");
-
-  if (!header || !stage) return;
-  if (header.querySelector("[data-lead-profile-new-task]")) return;
-
-  let actionWrap = header.querySelector(".lead-profile-header-actions");
-
-  if (!actionWrap) {
-    actionWrap = document.createElement("div");
-    actionWrap.className = "lead-profile-header-actions";
-    stage.replaceWith(actionWrap);
-    actionWrap.appendChild(stage);
+  if (detailPanel) {
+    const observer = new MutationObserver(syncLeadProfileTaskButton_);
+    observer.observe(detailPanel, {
+      childList: true,
+      subtree: true
+    });
   }
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "lead-profile-new-task-button";
-  button.dataset.leadProfileNewTask = "";
-  button.textContent = "New task";
-  button.addEventListener("click", openLeadProfileTaskDialog_);
+  syncLeadProfileTaskButton_();
+}
 
-  actionWrap.insertBefore(button, stage);
+function syncLeadProfileTaskButton_() {
+  const button = document.getElementById("leadProfileNewTaskButton");
+  if (!button) return;
+
+  button.disabled = !LEAD_PROFILE_STATE?.selectedLead?.Lead_id;
 }
 
 function bindLeadProfileTaskDialog_() {
