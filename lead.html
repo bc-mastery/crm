@@ -6,6 +6,7 @@
   <title>Business Canvas CRM — Lead Profile</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/lead-activity.css">
+  <link rel="stylesheet" href="css/lead-task.css">
 </head>
 <body>
   <div class="crm-app">
@@ -64,12 +65,58 @@
     </main>
   </div>
 
+  <dialog id="leadTaskDialog" class="lead-task-dialog">
+    <form id="leadTaskForm" class="lead-task-form" method="dialog">
+      <div class="lead-task-dialog-header">
+        <div>
+          <h2>New task</h2>
+          <p id="leadTaskCompanyLabel">Selected lead</p>
+        </div>
+        <button type="button" id="leadTaskDialogClose" class="lead-task-dialog-close" aria-label="Close">×</button>
+      </div>
+
+      <div class="lead-task-form-grid">
+        <label>
+          Task type
+          <select id="leadTaskTypeInput" required></select>
+        </label>
+
+        <label>
+          User
+          <select id="leadTaskUserInput" required><option value="">Select user</option></select>
+        </label>
+
+        <label class="lead-task-form-wide">
+          Task title
+          <input id="leadTaskTitleInput" type="text" maxlength="180" required>
+        </label>
+
+        <label>
+          Due date
+          <input id="leadTaskDueInput" type="datetime-local">
+        </label>
+
+        <label class="lead-task-form-wide">
+          Notes
+          <textarea id="leadTaskNotesInput" rows="3"></textarea>
+        </label>
+      </div>
+
+      <div class="lead-task-dialog-actions">
+        <button type="button" id="leadTaskDialogCancel" class="secondary-button">Cancel</button>
+        <button type="submit" id="leadTaskSubmitButton" class="primary-button">Create task</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/cache.js"></script>
+  <script src="js/task-cache.js"></script>
   <script src="js/lead-detail.js"></script>
   <script src="js/source-fields.js"></script>
   <script src="js/lead-profile.js"></script>
   <script src="js/lead-activity.js"></script>
+  <script src="js/lead-task.js"></script>
 </body>
 </html>
