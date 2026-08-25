@@ -78,7 +78,7 @@ function bindLeadProfileTaskDialog_() {
 }
 
 async function openLeadProfileTaskDialog_() {
-  const lead = window.LEAD_PROFILE_STATE?.selectedLead || null;
+  const lead = LEAD_PROFILE_STATE?.selectedLead || null;
   const dialog = document.getElementById("leadTaskDialog");
 
   if (!lead || !dialog) {
