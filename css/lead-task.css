@@ -2,23 +2,48 @@
    BUSINESS CANVAS CRM — LEAD PROFILE TASK ACTION
 ========================================================= */
 
+/*
+ * Search + New task row.
+ *
+ * Keep the search field at its existing Lead Profile width
+ * and pin New task to the far-right edge so it sits directly
+ * below Back to Leads.
+ */
 .lead-profile-search-actions-row {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: stretch;
+  width: 100%;
+  gap: 18px;
 }
 
 .lead-profile-search-actions-row .lead-profile-search-wrap {
-  flex: 1 1 auto;
+  flex: 0 1 780px;
+  width: 100%;
   min-width: 0;
 }
 
 .lead-profile-top-task-button {
-  flex: 0 0 auto;
+  flex: 0 0 146px;
+  width: 146px;
+  min-width: 146px;
+  height: 56px;
   min-height: 56px;
-  padding: 0 22px;
+  margin-left: auto;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
   font-weight: 700;
+}
+
+/* Match the top-right Back to Leads control exactly in width. */
+.lead-profile-back-button {
+  width: 146px;
+  min-width: 146px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .lead-profile-top-task-button:disabled {
@@ -118,8 +143,15 @@
     flex-direction: column;
   }
 
+  .lead-profile-search-actions-row .lead-profile-search-wrap,
   .lead-profile-top-task-button {
     width: 100%;
+    min-width: 0;
+    flex-basis: auto;
+  }
+
+  .lead-profile-top-task-button {
+    margin-left: 0;
   }
 
   .lead-task-form-grid {
