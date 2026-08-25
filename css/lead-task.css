@@ -11,7 +11,7 @@
  */
 .lead-profile-search-actions-row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   width: 100%;
   gap: 18px;
 }
@@ -26,15 +26,15 @@
   flex: 0 0 146px;
   width: 146px;
   min-width: 146px;
-  height: 56px;
-  min-height: 56px;
+  height: 38px;
+  min-height: 38px;
   margin-left: auto;
-  padding: 0 16px;
+  padding: 0 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Match the top-right Back to Leads control exactly in width. */
@@ -151,6 +151,8 @@
   }
 
   .lead-profile-top-task-button {
+    height: 38px;
+    min-height: 38px;
     margin-left: 0;
   }
 
