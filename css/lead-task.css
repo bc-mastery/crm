@@ -1,0 +1,126 @@
+/* =========================================================
+   BUSINESS CANVAS CRM — LEAD PROFILE TASK ACTION
+========================================================= */
+
+.lead-profile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lead-profile-new-task-button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--deep-accent);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lead-profile-new-task-button:hover {
+  background: var(--surface-soft);
+}
+
+.lead-task-dialog {
+  width: min(680px, calc(100vw - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 70px rgba(2, 77, 79, 0.22);
+  color: var(--text);
+}
+
+.lead-task-dialog::backdrop {
+  background: rgba(2, 45, 46, 0.34);
+}
+
+.lead-task-form {
+  padding: 22px;
+}
+
+.lead-task-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.lead-task-dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.lead-task-dialog-header p {
+  margin: 5px 0 0;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.lead-task-dialog-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.lead-task-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.lead-task-form-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lead-task-form-wide {
+  grid-column: 1 / -1;
+}
+
+.lead-task-form-grid input,
+.lead-task-form-grid select,
+.lead-task-form-grid textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+}
+
+.lead-task-form-grid textarea {
+  resize: vertical;
+}
+
+.lead-task-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+  .lead-task-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-task-form-wide {
+    grid-column: auto;
+  }
+
+  .lead-profile-header-actions {
+    align-items: flex-end;
+    flex-direction: column;
+  }
+}
