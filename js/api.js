@@ -182,6 +182,22 @@ async function getCrmLead(
 
 
 /* =========================================================
+ * ACTIVITIES
+ * ========================================================= */
+
+async function getCrmActivities() {
+
+  const data =
+    await crmApiGet({
+      action: "listActivities"
+    });
+
+
+  return data.activities || [];
+}
+
+
+/* =========================================================
  * UPDATE LEAD
  * ========================================================= */
 
